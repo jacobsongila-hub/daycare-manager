@@ -1,0 +1,39 @@
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
+const navItems = [
+  { to: '/parent', icon: '🏠', label: 'My Children', end: true },
+];
+
+export default function ParentLayout() {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => { logout(); navigate('/login'); };
+
+  return (
+    <div className="app-layout">
+      <header className="app-header" style={{ background: 'linear-gradient(135deg, #6a1b9a, #8e24aa)' }}>
+        <div className="header-left">
+          <span className="header-logo">👨‍👩‍👧</span>
+          <div>
+            <h1 style={{ fontSize: 16 }}>Daycare Manager</h1>
+            <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 500 }}>Parent Portal</div>
+          </div>
+        </div>
+        <button className="logout-btn" onClick={handleLogout}>⎋ Sign Out</button>
+      </header>
+
+      <nav className="bottom-nav">
+        {navItems.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.end}
+            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+            <span className="nav-icon">{item.icon}</span>
+            <span>{item.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      <main className="page-content"><Outlet /></main>
+    </div>
+  );
+}
