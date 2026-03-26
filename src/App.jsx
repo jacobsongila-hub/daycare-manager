@@ -17,6 +17,14 @@ import Announcements from './pages/admin/Announcements';
 import ShiftManager from './pages/admin/ShiftManager';
 import UserManagement from './pages/admin/UserManagement';
 
+import ChildDetail from './pages/admin/ChildDetail';
+import EmergencyContacts from './pages/admin/EmergencyContacts';
+import Reminders from './pages/admin/Reminders';
+import AdminReports from './pages/admin/AdminReports';
+import AdminDocs from './pages/admin/AdminDocs';
+import AdminStaff from './pages/admin/AdminStaff';
+import AdminStaffSchedule from './pages/admin/AdminStaffSchedule';
+
 // --- Staff Portal ---
 import StaffLayout from './components/StaffLayout';
 import StaffHome from './pages/staff/StaffHome';
@@ -26,6 +34,7 @@ import StaffTimeTracking from './pages/staff/StaffTimeTracking';
 import StaffShifts from './pages/staff/StaffShifts';
 import StaffCalendar from './pages/staff/StaffCalendar';
 import StaffDocs from './pages/staff/StaffDocs';
+import StaffProfile from './pages/staff/StaffProfile';
 
 // --- Parent Portal ---
 import ParentLayout from './components/ParentLayout';
@@ -33,6 +42,7 @@ import ParentHome from './pages/parent/ParentHome';
 import ParentCalendar from './pages/parent/ParentCalendar';
 import ParentDocs from './pages/parent/ParentDocs';
 import ParentProfile from './pages/parent/ParentProfile';
+import ParentPhotos from './pages/parent/ParentPhotos';
 
 function RoleRouter() {
   const { user } = useAuth();
@@ -85,13 +95,19 @@ export default function App() {
             <Route path="attendance" element={<AdminAttendance />} />
             <Route path="families" element={<FamilyManagement />} />
             <Route path="children" element={<Children />} />
-            <Route path="staff" element={<Staff />} />
+            <Route path="children/:id" element={<ChildDetail />} />
+            <Route path="emergency-contacts" element={<EmergencyContacts />} />
+            <Route path="staff" element={<AdminStaff />} />
             <Route path="time-tracking" element={<TimeTracking />} />
+            <Route path="staff-schedule" element={<AdminStaffSchedule />} />
             <Route path="calendar" element={<AdminCalendar />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="announcements" element={<Announcements />} />
+            <Route path="reminders" element={<Reminders />} />
             <Route path="shift-requests" element={<ShiftManager />} />
             <Route path="users" element={<UserManagement />} />
+            <Route path="reports" element={<AdminReports />} />
+            <Route path="docs" element={<AdminDocs />} />
           </Route>
 
           {/* ─── STAFF PORTAL ─── */}
@@ -103,6 +119,7 @@ export default function App() {
             <Route path="shifts" element={<StaffShifts />} />
             <Route path="calendar" element={<StaffCalendar />} />
             <Route path="docs" element={<StaffDocs />} />
+            <Route path="profile" element={<StaffProfile />} />
           </Route>
 
           {/* ─── PARENT PORTAL ─── */}
@@ -111,6 +128,7 @@ export default function App() {
             <Route path="calendar" element={<ParentCalendar />} />
             <Route path="docs" element={<ParentDocs />} />
             <Route path="profile" element={<ParentProfile />} />
+            <Route path="photos" element={<ParentPhotos />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

@@ -51,6 +51,7 @@ export const DailyNotesApi = createCrud('/api/daily-notes');
 export const DocumentsApi = createCrud('/api/documents');
 export const TimeEntriesApi = createCrud('/api/time-entries');
 export const AttendanceApi = createCrud('/api/attendance');
+export const RemindersApi = createCrud('/api/reminders');
 
 export const clockIn = (staffId) =>
   api.post('/api/time-entries', { staffId, type: 'in', timestamp: new Date().toISOString() });
