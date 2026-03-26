@@ -1,15 +1,22 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const navItems = [
-  { to: '/staff', icon: '🏠', label: 'Home', end: true },
-  { to: '/staff/time', icon: '⏱️', label: 'My Time' },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 export default function StaffLayout() {
   const { logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  const navItems = [
+    { to: '/staff', icon: '🏠', label: t('dashboard'), end: true },
+    { to: '/staff/attendance', icon: '✅', label: t('attendance') },
+    { to: '/staff/notes', icon: '📝', label: t('notes') },
+    { to: '/staff/time', icon: '⏱️', label: t('timeTracking') },
+    { to: '/staff/shifts', icon: '📅', label: t('myshifts') },
+    { to: '/staff/calendar', icon: '🗓️', label: t('calendar') },
+    { to: '/staff/docs', icon: '📄', label: t('mydocs') },
+  ];
 
   return (
     <div className="app-layout">
@@ -21,7 +28,7 @@ export default function StaffLayout() {
             <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 500 }}>Staff Portal</div>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>⎋ Sign Out</button>
+        <button className="logout-btn" onClick={handleLogout}>⎋ {t('logout')}</button>
       </header>
 
       <nav className="bottom-nav">
@@ -29,7 +36,7 @@ export default function StaffLayout() {
           <NavLink key={item.to} to={item.to} end={item.end}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
           </NavLink>
         ))}
       </nav>

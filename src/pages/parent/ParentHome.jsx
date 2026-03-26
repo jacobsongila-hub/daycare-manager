@@ -1,111 +1,120 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getChildren, getParents } from '../../services/api';
-
-function calcAge(dob) {
-  if (!dob) return null;
-  const diff = Date.now() - new Date(dob).getTime();
-  const years = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
-  const months = Math.floor((diff % (365.25 * 24 * 3600 * 1000)) / (30.44 * 24 * 3600 * 1000));
-  if (years > 0) return `${years}y ${months}m`;
-  return `${months} months`;
-}
+import { ChildrenApi, AttendanceApi, DailyNotesApi, AnnouncementsApi } from '../../services/api';
 
 export default function ParentHome() {
   const { user } = useAuth();
-  const [myChildren, setMyChildren] = useState([]);
+  const [children, setChildren] = useState([]);
+  const [attendance, setAttendance] = useState({});
+  const [notes, setNotes] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
+  const todayStr = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
+    async function loadData() {
       try {
-        const [cr, pr] = await Promise.all([getChildren(), getParents()]);
-        const allChildren = cr.data?.data ?? cr.data ?? [];
-        const allParents = pr.data?.data ?? pr.data ?? [];
+        const [cRes, aRes, nRes, annRes] = await Promise.all([
+          ChildrenApi.getAll(),
+          AttendanceApi.getAll(),
+          DailyNotesApi.getAll(),
+          AnnouncementsApi.getAll()
+        ]);
+        
+        // Find my children (where familyId matches or parent is assigned)
+        const allKids = cRes.data || [];
+        const myKids = allKids.filter(k => k.familyId === user?.id || !k.familyId); // For testing, assume no familyId means visible
+        setChildren(myKids);
 
-        // Find this parent's record by email
-        const myParentRecord = Array.isArray(allParents)
-          ? allParents.find(p => p.email === user?.email)
-          : null;
+        const myKidIds = myKids.map(k => k._id);
 
-        const myId = myParentRecord?.id ?? myParentRecord?._id;
+        // My Kids' Attendance Today
+        const daysAtt = (aRes.data || []).filter(a => a.date === todayStr && myKidIds.includes(a.childId));
+        const dict = {};
+        daysAtt.forEach(a => { dict[a.childId] = a; });
+        setAttendance(dict);
 
-        // Filter children linked to this parent
-        const mine = Array.isArray(allChildren)
-          ? allChildren.filter(c => {
-              if (myId && (c.parentId === myId || c.parent_id === myId)) return true;
-              // Fallback: match by parent name or if only 1 child
-              if (myParentRecord?.name && c.parentName === myParentRecord.name) return true;
-              return false;
-            })
-          : [];
+        // My Kids' Notes
+        const myNotes = (nRes.data || []).filter(n => myKidIds.includes(n.childId)).slice(0, 5);
+        setNotes(myNotes);
 
-        setMyChildren(mine.length > 0 ? mine : Array.isArray(allChildren) ? allChildren : []);
+        // General Announcements
+        setAnnouncements((annRes.data || []).slice(0, 3));
+
       } catch (err) {
-        setError(err.code === 'ERR_NETWORK' ? 'Cannot reach server.' : 'Failed to load.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
     }
-    load();
+    if(user) loadData();
   }, [user]);
 
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-
   return (
-    <div>
-      <div className="welcome-banner" style={{ background: 'linear-gradient(135deg, #4a148c, #6a1b9a, #8e24aa)' }}>
-        <div className="welcome-title">Welcome,</div>
-        <div className="welcome-name">{user?.name || user?.email?.split('@')[0] || 'Parent'}</div>
-        <div className="welcome-date">{today}</div>
+    <div className="page-container" style={{ paddingBottom: 80 }}>
+      
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #6a1b9a, #8e24aa)', padding: 25, borderRadius: 16, color: 'white', marginBottom: 25, boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>
+        <h2 style={{ margin: '0 0 5px 0' }}>Hi, {user?.name?.split(' ')[0] || 'Parent'}! 👋</h2>
+        <p style={{ margin: 0, opacity: 0.9 }}>Here is your daily update</p>
       </div>
 
-      {error && <div className="alert alert-error">⚠️ {error}</div>}
-
-      <div className="section-label">Your Children</div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '40px' }}>
-          <div className="spinner" style={{ margin: '0 auto' }}></div>
+      {/* Announcements Alert */}
+      {announcements.length > 0 && (
+        <div style={{ background: '#f3e5f5', borderLeft: '4px solid #9c27b0', padding: 15, borderRadius: 8, marginBottom: 20 }}>
+          📢 <strong>Latest Announcement:</strong> {announcements[0].title}
         </div>
-      ) : myChildren.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">👶</div>
-          <div className="empty-title">No children linked yet</div>
-          <div className="empty-sub">Ask your daycare admin to link your account</div>
-        </div>
-      ) : (
-        myChildren.map((child, i) => (
-          <div key={child.id ?? child._id ?? i} className="card" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <div className="avatar avatar-purple" style={{ width: 56, height: 56, fontSize: 22 }}>
-              {child.name?.charAt(0).toUpperCase() ?? '?'}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 4 }}>{child.name}</div>
-              {child.dob && (
-                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-                  🎂 Age: {calcAge(child.dob)}
-                </div>
-              )}
-              {child.age && !child.dob && (
-                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Age: {child.age}</div>
-              )}
-              <div style={{ fontSize: 12, color: 'var(--text-light)', marginTop: 4 }}>
-                📍 Enrolled at daycare
-              </div>
-            </div>
-          </div>
-        ))
       )}
 
-      <div className="card" style={{ marginTop: 16, background: 'var(--primary-light)', border: '1px solid #bbdefb' }}>
-        <div style={{ fontWeight: 700, color: 'var(--primary-dark)', marginBottom: 4 }}>📞 Need to contact the daycare?</div>
-        <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-          Reach out to your daycare manager directly for any questions or updates.
+      <h3 style={{ margin: '0 0 15px 0', color: '#444' }}>My Children Today</h3>
+      {loading ? <div className="spinner"></div> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 15, marginBottom: 25 }}>
+          {children.length === 0 ? <p className="empty-state">No children associated with your account yet.</p> : children.map(child => {
+            const att = attendance[child._id] || { status: 'Not yet marked' };
+            const isPresent = att.status === 'Present';
+            
+            return (
+              <div key={child._id} style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.05)', display: 'flex', gap: 15, alignItems: 'center' }}>
+                <div style={{ width: 60, height: 60, borderRadius: 30, background: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem' }}>
+                  {child.avatar ? <img src={child.avatar} alt="avatar" style={{width: 60, height: 60, borderRadius: 30, objectFit: 'cover'}} /> : '👶'}
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 5px 0', fontSize: '1.1rem' }}>{child.name}</h4>
+                  <div>
+                    {isPresent ? (
+                      <span style={{ color: '#4caf50', fontWeight: 'bold' }}>✓ Present ({att.checkIn})</span>
+                    ) : (
+                      <span style={{ color: '#888' }}>{att.status}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
+
+      {/* Recent Notes */}
+      <h3 style={{ margin: '0 0 15px 0', color: '#444' }}>Recent Daily Notes</h3>
+      {loading ? <div className="spinner"></div> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          {notes.length === 0 ? <p className="empty-state">No notes for your children recently.</p> : notes.map(note => {
+            const childName = children.find(c => c._id === note.childId)?.name || 'Child';
+            return (
+              <div key={note._id} style={{ background: 'white', padding: 15, borderRadius: 12, borderLeft: '4px solid #8e24aa', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                  <strong style={{ fontSize: '1.05rem', color: '#6a1b9a' }}>{childName}</strong>
+                  <span style={{ fontSize: '0.8rem', color: '#888' }}>
+                    {new Date(note.timestamp).toLocaleDateString()} {new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+                <p style={{ margin: 0, color: '#444', lineHeight: 1.5 }}>{note.note}</p>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

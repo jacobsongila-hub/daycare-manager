@@ -1,14 +1,19 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const navItems = [
-  { to: '/parent', icon: '🏠', label: 'My Children', end: true },
-];
+import { useLanguage } from '../context/LanguageContext';
 
 export default function ParentLayout() {
   const { logout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const handleLogout = () => { logout(); navigate('/login'); };
+
+  const navItems = [
+    { to: '/parent', icon: '🏠', label: 'Home', end: true },
+    { to: '/parent/calendar', icon: '📅', label: t('calendar') },
+    { to: '/parent/docs', icon: '📄', label: t('mydocs') },
+    { to: '/parent/profile', icon: '👤', label: t('profile') },
+  ];
 
   return (
     <div className="app-layout">
@@ -20,7 +25,7 @@ export default function ParentLayout() {
             <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 500 }}>Parent Portal</div>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>⎋ Sign Out</button>
+        <button className="logout-btn" onClick={handleLogout}>⎋ {t('logout')}</button>
       </header>
 
       <nav className="bottom-nav">
@@ -28,7 +33,7 @@ export default function ParentLayout() {
           <NavLink key={item.to} to={item.to} end={item.end}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
             <span className="nav-icon">{item.icon}</span>
-            <span>{item.label}</span>
+            <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
           </NavLink>
         ))}
       </nav>
