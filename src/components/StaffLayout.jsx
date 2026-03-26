@@ -16,6 +16,7 @@ export default function StaffLayout() {
     { to: '/staff/shifts', icon: '📅', label: t('myshifts') },
     { to: '/staff/calendar', icon: '🗓️', label: t('calendar') },
     { to: '/staff/docs', icon: '📄', label: t('mydocs') },
+    { to: '/staff/profile', icon: '👤', label: 'Profile' },
   ];
 
   return (

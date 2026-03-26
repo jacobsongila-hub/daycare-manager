@@ -11,6 +11,7 @@ export default function ParentLayout() {
   const navItems = [
     { to: '/parent', icon: '🏠', label: 'Home', end: true },
     { to: '/parent/calendar', icon: '📅', label: t('calendar') },
+    { to: '/parent/photos', icon: '📸', label: 'Photos' },
     { to: '/parent/docs', icon: '📄', label: t('mydocs') },
     { to: '/parent/profile', icon: '👤', label: t('profile') },
   ];
