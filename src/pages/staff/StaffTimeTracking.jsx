@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getStaff, clockIn, clockOut, getTimeEntries, confirmTimesheet } from '../../services/api';
+import { StaffApi, TimeEntriesApi, clockIn, clockOut } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 function useClock() {
@@ -34,8 +34,8 @@ export default function StaffTimeTracking() {
     setLoading(true);
     try {
       const [sr, er] = await Promise.all([
-        getStaff().catch(() => ({ data: [] })),
-        getTimeEntries().catch(() => ({ data: [] })),
+        StaffApi.getAll().catch(() => ({ data: [] })),
+        TimeEntriesApi.getAll().catch(() => ({ data: [] })),
       ]);
       const staffList = sr.data?.data ?? sr.data ?? [];
       const allEntries = er.data?.data ?? er.data ?? [];

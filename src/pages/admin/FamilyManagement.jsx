@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FamiliesApi, ChildrenApi } from '../../services/api';
+import { calculateAge } from '../../utils/formatters';
 
 export default function FamilyManagement() {
   const [families, setFamilies] = useState([]);
@@ -132,7 +133,7 @@ export default function FamilyManagement() {
                         </div>
                       </div>
                       <div style={{ fontSize: '0.85rem', color: '#555', marginTop: 8 }}>
-                        {child.dob && <div><strong>DOB:</strong> {child.dob}</div>}
+                        {child.dob && <div><strong>DOB:</strong> {child.dob} ({calculateAge(child.dob)})</div>}
                         {child.allergies && <div style={{ color: '#d32f2f', marginTop: 5 }}><strong>Allergies:</strong> {child.allergies}</div>}
                         {child.medicalInfo && <div style={{ marginTop: 5 }}><strong>Medical:</strong> {child.medicalInfo}</div>}
                       </div>

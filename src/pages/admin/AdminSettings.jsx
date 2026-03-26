@@ -58,8 +58,33 @@ export default function AdminSettings() {
           <h3 style={{ margin: '0 0 15px 0', color: '#f44336' }}>📦 Data Migration</h3>
           <p style={{ color: '#666', marginBottom: 15 }}>Import or export all daycare data as JSON.</p>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn">📥 Export Data</button>
-            <button className="btn">📤 Import Data</button>
+            <button className="btn" onClick={() => {
+              const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localStorage));
+              const a = document.createElement('a');
+              a.href = dataStr;
+              a.download = 'daycare_backup.json';
+              a.click();
+            }}>📥 Export Data</button>
+            <button className="btn" onClick={() => {
+              const input = document.createElement('input');
+              input.type = 'file';
+              input.accept = 'application/json';
+              input.onchange = e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                  try {
+                    const data = JSON.parse(ev.target.result);
+                    Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+                    alert('Data imported successfully! Reloading...');
+                    window.location.reload();
+                  } catch(err) { alert('Invalid JSON file'); }
+                };
+                reader.readAsText(file);
+              };
+              input.click();
+            }}>📤 Import Data</button>
           </div>
         </div>
 

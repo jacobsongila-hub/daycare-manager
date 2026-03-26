@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChildrenApi, AttendanceApi, DailyNotesApi, FamiliesApi } from '../../services/api';
+import { calculateAge } from '../../utils/formatters';
 
 export default function ChildDetail() {
   const { id } = useParams();
@@ -96,7 +97,7 @@ export default function ChildDetail() {
             </form>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <div><strong>DOB:</strong> {child.dob || 'Not provided'}</div>
+              <div><strong>DOB:</strong> {child.dob || 'Not provided'} {child.dob && <span style={{color: '#666', fontSize: '0.9rem'}}>({calculateAge(child.dob)})</span>}</div>
               <div><strong style={{ color: '#d32f2f' }}>Allergies:</strong> {child.allergies || 'None listed'}</div>
               <div><strong>Medical Info:</strong> {child.medicalInfo || 'None listed'}</div>
             </div>

@@ -7,9 +7,6 @@ import AdminLayout from './components/AdminLayout';
 import Dashboard from './pages/Dashboard';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import FamilyManagement from './pages/admin/FamilyManagement';
-import Parents from './pages/Parents'; // (Legacy view, or keep?)
-import Children from './pages/Children';
-import Staff from './pages/Staff';
 import TimeTracking from './pages/TimeTracking';
 import AdminCalendar from './pages/admin/AdminCalendar';
 import AdminSettings from './pages/admin/AdminSettings';
@@ -24,6 +21,8 @@ import AdminReports from './pages/admin/AdminReports';
 import AdminDocs from './pages/admin/AdminDocs';
 import AdminStaff from './pages/admin/AdminStaff';
 import AdminStaffSchedule from './pages/admin/AdminStaffSchedule';
+import AdminPhotos from './pages/admin/AdminPhotos';
+import AdminNotes from './pages/admin/AdminNotes';
 
 // --- Staff Portal ---
 import StaffLayout from './components/StaffLayout';
@@ -94,7 +93,6 @@ export default function App() {
             <Route index element={<Dashboard />} />
             <Route path="attendance" element={<AdminAttendance />} />
             <Route path="families" element={<FamilyManagement />} />
-            <Route path="children" element={<Children />} />
             <Route path="children/:id" element={<ChildDetail />} />
             <Route path="emergency-contacts" element={<EmergencyContacts />} />
             <Route path="staff" element={<AdminStaff />} />
@@ -108,6 +106,8 @@ export default function App() {
             <Route path="users" element={<UserManagement />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="docs" element={<AdminDocs />} />
+            <Route path="photos" element={<AdminPhotos />} />
+            <Route path="notes" element={<AdminNotes />} />
           </Route>
 
           {/* ─── STAFF PORTAL ─── */}

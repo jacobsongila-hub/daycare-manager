@@ -1,11 +1,13 @@
 import React from 'react';
 import CalendarView from '../../components/CalendarView';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function ParentCalendar() {
+  const { t } = useLanguage();
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
-      <h2 style={{ marginBottom: 20 }}>Daycare Calendar</h2>
-      <p style={{ color: '#555', marginBottom: 20 }}>Review upcoming closed days and events.</p>
+      <h2 style={{ marginBottom: 20 }}>📅 {t('calendar') || 'Daycare Calendar'}</h2>
+      <p style={{ color: '#555', marginBottom: 20 }}>View upcoming events, holidays, and daycare closures.</p>
       <CalendarView readOnly={true} />
     </div>
   );

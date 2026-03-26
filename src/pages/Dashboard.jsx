@@ -6,13 +6,13 @@ import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsAp
 
 const actionCards = [
   { to: '/admin/attendance', icon: '📝', label: 'Mark Attendance', color: '#4CAF50' },
-  { to: '/admin/emergency-contacts', icon: '🚨', label: 'Emergency DB', color: '#2196F3' },
-  { to: '/admin/reminders', icon: '✅', label: 'Reminders', color: '#FF9800' },
-  { to: '/admin/families', icon: '👨‍👩‍👧', label: 'Families & Kids', color: '#9C27B0' },
-  { to: '/admin/docs', icon: '📁', label: 'Doc Center', color: '#607D8B' },
-  { to: '/admin/reports', icon: '📥', label: 'Reports Gen', color: '#F44336' },
-  { to: '/admin/shift-requests', icon: '📋', label: 'Shift Requests', color: '#E91E63' },
-  { to: '/admin/staff-schedule', icon: '💼', label: 'Staff Planner', color: '#3F51B5' },
+  { to: '/admin/photos', icon: '📸', label: 'Upload Photos', color: '#E91E63' },
+  { to: '/admin/notes', icon: '📋', label: 'Daily Notes', color: '#FF9800' },
+  { to: '/admin/families', icon: '👨‍👩‍👧', label: 'Families', color: '#9C27B0' },
+  { to: '/admin/docs', icon: '📁', label: 'Documents', color: '#607D8B' },
+  { to: '/admin/reports', icon: '📥', label: 'Generate Reports', color: '#F44336' },
+  { to: '/admin/shift-requests', icon: '📋', label: 'Shift Requests', color: '#2196F3' },
+  { to: '/admin/staff-schedule', icon: '💼', label: 'Staff Schedule', color: '#3F51B5' },
 ];
 
 function getDayGreeting() {

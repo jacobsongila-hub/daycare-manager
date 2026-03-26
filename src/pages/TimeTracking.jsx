@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getStaff, clockIn, clockOut, getTimeEntries, confirmTimesheet } from '../services/api';
+import { StaffApi, TimeEntriesApi, clockIn, clockOut } from '../services/api';
 
 function formatTime(iso) {
   if (!iso) return '—';
@@ -35,8 +35,8 @@ export default function TimeTracking() {
     setError('');
     try {
       const [sr, er] = await Promise.all([
-        getStaff().catch(() => ({ data: [] })),
-        getTimeEntries().catch(() => ({ data: [] })),
+        StaffApi.getAll().catch(() => ({ data: [] })),
+        TimeEntriesApi.getAll().catch(() => ({ data: [] })),
       ]);
       const s = sr.data?.data ?? sr.data ?? [];
       const e = er.data?.data ?? er.data ?? [];
@@ -92,7 +92,7 @@ export default function TimeTracking() {
   const handleConfirm = async (entryId) => {
     setError('');
     try {
-      await confirmTimesheet(entryId);
+      await TimeEntriesApi.update(entryId, { confirmed: true, status: 'confirmed' });
       showSuccess('✅ Timesheet confirmed!');
       await load();
     } catch (err) {
