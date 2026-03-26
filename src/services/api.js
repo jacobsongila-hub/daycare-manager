@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:8001`;
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://daycare-backend-nxx8.onrender.com';
 
 const api = axios.create({
   baseURL: BASE_URL,
