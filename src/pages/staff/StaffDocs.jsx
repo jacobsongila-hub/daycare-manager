@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DocumentsApi } from '../../services/api';
 import { useConfirm } from '../../context/ConfirmContext';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function StaffDocs() {
   const { user } = useAuth();
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { confirm } = useConfirm();
+  const { addToast } = useNotification();
 
   const loadData = async () => {
     setLoading(true);
@@ -27,19 +29,26 @@ export default function StaffDocs() {
   const handleUpload = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    
-    // Mock upload URL for simplicity in this demo structure
-    data.url = `https://dummyfile.com/${Math.random().toString(36).substring(7)}.pdf`;
-    data.ownerId = user?.id;
-    data.type = 'Staff Document';
-    
-    try {
-      await DocumentsApi.create(data);
-      e.target.reset();
-      addToast('Document uploaded', 'success');
-      loadData();
-    } catch(err) { addToast('Error uploading document', 'error'); }
+    const file = e.target.querySelector('input[type="file"]').files[0];
+    if (!file) { addToast('Please select a file', 'warning'); return; }
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      try {
+        const payload = {
+          title: formData.get('title'),
+          category: formData.get('category'),
+          url: reader.result, // Base64 string
+          ownerId: user?.id,
+          type: 'Staff Document'
+        };
+        await DocumentsApi.create(payload);
+        e.target.reset();
+        addToast('Document uploaded', 'success');
+        loadData();
+      } catch(err) { addToast('Error uploading document', 'error'); }
+    };
+    reader.readAsDataURL(file);
   };
 
   const deleteDoc = async (id) => {

@@ -207,7 +207,7 @@ export default function StaffTimeTracking() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {entries.slice().reverse().slice(0, 10).map(entry => {
+            {entries.sort((a,b) => new Date(b.clockIn) - new Date(a.clockIn)).slice(0, 10).map(entry => {
               const isConfirmed = entry.confirmed;
               const duration = calculateDiff(entry.clockIn, entry.clockOut);
               return (
