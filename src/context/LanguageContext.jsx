@@ -171,6 +171,10 @@ const translations = {
     yesMarkAll: 'Yes, Mark All',
     invalidFile: 'Invalid file format',
     dataImported: 'Data imported successfully! Reloading...',
+    selectFile: 'Please select a file',
+    present: 'Present',
+    absent: 'Absent',
+    late: 'Late',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -340,6 +344,10 @@ const translations = {
     yesMarkAll: 'כן, סמן את כולם',
     invalidFile: 'פורמט קובץ לא תקין',
     dataImported: 'הנתונים יובאו בהצלחה! מרענן...',
+    selectFile: 'אנא בחר קובץ',
+    present: 'נוכח',
+    absent: 'נעדר',
+    late: 'איחר',
   }
 };
 

@@ -199,11 +199,13 @@ export default function AdminAttendance() {
 
       <ConfirmModal 
         isOpen={confirmModal.isOpen} 
-        title={t('confirmMarkAll') || `Mark all as ${confirmModal.status}?`}
-        message={`Are you sure you want to mark all children as ${confirmModal.status} for ${date}?`}
+        title={t('confirmMarkAll')}
+        message={t('confirmMarkAllMsg')?.replace('{{status}}', t(confirmModal.status?.toLowerCase()) || confirmModal.status)}
         onConfirm={handleConfirmMarkAll}
         onCancel={() => setConfirmModal({ isOpen: false, status: null })}
-        confirmText="Yes, Mark All"
+        confirmText={t('yesMarkAll')}
+        cancelText={t('cancel')}
+        danger={confirmModal.status === 'Absent'}
       />
     </div>
   );

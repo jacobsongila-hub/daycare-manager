@@ -28,7 +28,7 @@ function getDayGreeting(t) {
 export default function Dashboard() {
   const { addToast } = useNotification();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const navigate = useNavigate();
 
   const [stats, setStats] = useState({ present: 0, absent: 0, total: 0, staffIn: 0 });
