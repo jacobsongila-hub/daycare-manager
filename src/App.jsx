@@ -2,14 +2,11 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import PublicRoute from './components/PublicRoute';
-import { RoleRouter } from './components/RoleRouter';
 
-// Layouts
-import AdminLayout from './layouts/AdminLayout';
-import StaffLayout from './layouts/StaffLayout';
-import ParentLayout from './layouts/ParentLayout';
+// Layouts (found in components folder)
+import AdminLayout from './components/AdminLayout';
+import StaffLayout from './components/StaffLayout';
+import ParentLayout from './components/ParentLayout';
 
 // Pages
 import Login from './pages/Login';
@@ -49,11 +46,41 @@ import ParentDocs from './pages/parent/ParentDocs';
 import ParentProfile from './pages/parent/ParentProfile';
 import ParentPhotos from './pages/parent/ParentPhotos';
 
+function RoleRouter() {
+  const { user } = useAuth();
+  if (!user) return null;
+  const role = (user.role || '').toLowerCase();
+  if (role === 'admin' || role === 'owner') return <Navigate to="/admin" replace />;
+  if (role === 'staff' || role === 'employee') return <Navigate to="/staff" replace />;
+  if (role === 'parent') return <Navigate to="/parent" replace />;
+  return <Navigate to="/admin" replace />;
+}
+
+function ProtectedRoute({ children, allowedRoles }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="splash"><div className="spinner"></div></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (allowedRoles) {
+    const role = (user.role || '').toLowerCase();
+    const allowed = allowedRoles.some(r => role === r);
+    if (!allowed && role !== 'admin' && role !== 'owner') {
+      return <Navigate to="/login" replace />;
+    }
+  }
+  return children;
+}
+
+function PublicRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="splash"><div className="spinner"></div></div>;
+  return user ? <RoleRouter /> : children;
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <NotificationProvider>
+    <AuthProvider>
+      <NotificationProvider>
+        <BrowserRouter>
           <Routes>
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
@@ -108,9 +135,9 @@ export default function App() {
 
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </NotificationProvider>
-      </AuthProvider>
-    </BrowserRouter>
+        </BrowserRouter>
+      </NotificationProvider>
+    </AuthProvider>
   );
 }
 
