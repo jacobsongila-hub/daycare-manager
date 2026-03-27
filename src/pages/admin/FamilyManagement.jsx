@@ -23,8 +23,8 @@ export default function FamilyManagement() {
     setLoading(true);
     try {
       const [fRes, cRes] = await Promise.all([FamiliesApi.getAll(), ChildrenApi.getAll()]);
-      const fams = fRes.data || [];
-      const kids = cRes.data || [];
+      const fams = Array.isArray(fRes.data) ? fRes.data : [];
+      const kids = Array.isArray(cRes.data) ? cRes.data : [];
       
       setFamilies(fams);
       

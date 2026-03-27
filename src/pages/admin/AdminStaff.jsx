@@ -24,8 +24,8 @@ export default function AdminStaff() {
         StaffApi.getAll().catch(() => ({ data: [] })),
         TimeEntriesApi.getAll().catch(() => ({ data: [] }))
       ]);
-      setStaff(sRes.data || []);
-      setTimeEntries(tRes.data || []);
+      setStaff(Array.isArray(sRes.data) ? sRes.data : []);
+      setTimeEntries(Array.isArray(tRes.data) ? tRes.data : []);
     } catch (err) {
       addToast(t('errorLoadingStaff') || 'Failed to load staff directory', 'error');
     } finally {
@@ -144,6 +144,7 @@ export default function AdminStaff() {
                   </button>
                   <button className="btn" style={{ color: '#f44336' }} onClick={() => handleDelete(worker._id)}>🗑️</button>
                 </div>
+                {worker.joinDate && <div style={{ fontSize: '0.75rem', color: '#999', marginTop: 5, textAlign: 'center' }}>📅 {t('joined') || 'Joined'}: {worker.joinDate}</div>}
               </div>
             );
           })}
@@ -164,6 +165,10 @@ export default function AdminStaff() {
                 <option value="Assistant">Assistant</option>
                 <option value="Suspended">Suspended</option>
               </select>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.8rem', color: '#666' }}>{t('joinDate') || 'Join Date'}</label>
+                <input name="joinDate" defaultValue={editStaff?.joinDate} type="date" className="input" />
+              </div>
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowModal(false)}>{t('cancel')}</button>
                 <button type="submit" className="btn btn-primary">{t('save')}</button>

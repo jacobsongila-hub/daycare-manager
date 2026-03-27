@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StaffApi, TimeEntriesApi, clockIn, clockOut } from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -40,12 +40,13 @@ export default function TimeTracking() {
   const { addToast } = useNotification();
   const [showManualModal, setShowManualModal] = useState(false);
   const [manualForm, setManualForm] = useState({ staffId: '', date: new Date().toISOString().split('T')[0], start: '', end: '', preset: 'custom' });
+  const [viewMode, setViewMode] = useState('summary'); // 'summary' | 'detailed'
 
   const SHIFT_PRESETS = {
-    full: { label: t('fullDay'), start: '07:45', end: '17:00' },
-    morning: { label: t('halfMorning'), start: '07:34', end: '13:00' },
-    afternoon: { label: t('halfAfternoon'), start: '12:30', end: '17:00' },
-    custom: { label: t('custom'), start: '', end: '' }
+    full: { label: t('fullDay') || 'Full Day (07:45-17:00)', start: '07:45', end: '17:00' },
+    morning: { label: t('halfMorning') || 'Morning (07:34-13:00)', start: '07:34', end: '13:00' },
+    afternoon: { label: t('halfAfternoon') || 'Afternoon (12:30-17:00)', start: '12:30', end: '17:00' },
+    custom: { label: t('custom') || 'Custom', start: '', end: '' }
   };
 
   const load = useCallback(async () => {
@@ -72,7 +73,7 @@ export default function TimeTracking() {
   useEffect(() => { load(); }, [load]);
 
   const handleClockIn = async () => {
-    if (!selectedStaff) { addToast(t('selectStaffFirst') || 'Select staff first', 'warning'); return; }
+    if (!selectedStaff) return;
     setActioning(true);
     try {
       await clockIn(selectedStaff);
@@ -86,7 +87,7 @@ export default function TimeTracking() {
   };
 
   const handleClockOut = async () => {
-    if (!selectedStaff) { addToast(t('selectStaffFirst') || 'Select staff first', 'warning'); return; }
+    if (!selectedStaff) return;
     setActioning(true);
     try {
       await clockOut(selectedStaff);
@@ -125,7 +126,6 @@ export default function TimeTracking() {
     setActioning(true);
     try {
       await TimeEntriesApi.update(id, { confirmed: true });
-      addToast(t('timesheetVerified'), 'success');
       load();
     } catch (err) {
       addToast(t('errorVerifying'), 'error');
@@ -134,193 +134,173 @@ export default function TimeTracking() {
     }
   };
 
-  const onPresetChange = (preset) => {
-    const p = SHIFT_PRESETS[preset];
-    setManualForm(prev => ({ ...prev, preset, start: p.start, end: p.end }));
-  };
+  const staffEntries = useMemo(() => entries.filter(e => e.staffId === selectedStaff), [entries, selectedStaff]);
+  
+  const stats = useMemo(() => {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    
+    // Start of week (Sunday)
+    const startOfWeek = new Date();
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0,0,0,0);
+    
+    // Start of month
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const staffEntries = entries.filter(e => (e.staffId === selectedStaff));
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayHours = staffEntries
-    .filter(e => e.clockIn?.startsWith(todayStr))
-    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || new Date().toISOString()), 0);
+    const todayHours = staffEntries
+      .filter(e => e.clockIn?.startsWith(todayStr))
+      .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || new Date().toISOString()), 0);
 
-  const startOfWeek = new Date();
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  const weekHours = staffEntries
-    .filter(e => new Date(e.clockIn) >= startOfWeek)
-    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
+    const weekHours = staffEntries
+      .filter(e => new Date(e.clockIn) >= startOfWeek)
+      .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
 
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthHours = staffEntries
-    .filter(e => new Date(e.clockIn) >= startOfMonth)
-    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
+    const monthHours = staffEntries
+      .filter(e => new Date(e.clockIn) >= startOfMonth)
+      .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
+
+    return { todayHours, weekHours, monthHours };
+  }, [staffEntries]);
 
   const timeDisplay = now.toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateDisplay = now.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div style={{ paddingBottom: 80 }}>
-      {/* HEADER */}
-      <div style={{ padding: '24px 20px', background: 'linear-gradient(135deg, var(--primary-dark), var(--primary))', color:'white', borderRadius: '0 0 24px 24px', textAlign: 'center', marginBottom: 20, boxShadow: 'var(--shadow-md)' }}>
-        <div style={{ fontSize: '0.9rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1.2, fontWeight: 700 }}>{dateDisplay}</div>
-        <div style={{ fontSize: '3.2rem', fontWeight: 800, margin: '12px 0', letterSpacing: -1 }}>{timeDisplay}</div>
-        
-        {staff.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 15 }}>
+    <div className="page-container" style={{ paddingBottom: 100 }}>
+      {/* HEADER SECTION */}
+      <div style={{ background: 'linear-gradient(135deg, #1565c0, #1976d2)', padding: '40px 30px', borderRadius: 24, color: 'white', marginBottom: 25, boxShadow: '0 15px 35px rgba(21, 101, 192, 0.25)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: -30, top: -30, fontSize: '12rem', opacity: 0.1 }}>🕒</div>
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ textTransform: 'uppercase', letterSpacing: 2, fontSize: '0.85rem', fontWeight: 700, opacity: 0.9 }}>{dateDisplay}</div>
+          <div style={{ fontSize: '3.5rem', fontWeight: 900, margin: '10px 0' }}>{timeDisplay}</div>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginTop: 25 }}>
+            <span style={{ fontSize: '1rem', fontWeight: 600 }}>{t('currentlyViewing') || 'Currently Tracking'}:</span>
             <select
               className="input"
-              style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: 'none', borderRadius: 14, padding: '12px 20px', maxWidth: '90%', fontSize: '1.1rem', fontWeight: 600, backdropFilter: 'blur(10px)' }}
+              style={{ background: 'rgba(255,255,255,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 12, padding: '10px 20px', width: 'auto', fontSize: '1.1rem', fontWeight: 700, cursor: 'pointer', outline: 'none' }}
               value={selectedStaff}
               onChange={e => setSelectedStaff(e.target.value)}
             >
               {staff.map(s => <option key={s._id} value={s._id} style={{ color: '#333' }}>{s.name}</option>)}
             </select>
           </div>
-        )}
-      </div>
-
-      {/* SUMMARY CARDS */}
-      <div style={{ padding: '0 20px', display: 'flex', gap: 10, marginBottom: 25 }}>
-        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--success)', padding: 15 }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--success)' }}>{todayHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>Today</div>
-        </div>
-        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--primary)', padding: 15 }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>{weekHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>This Week</div>
-        </div>
-        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid #9c27b0', padding: 15 }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9c27b0' }}>{monthHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>This Month</div>
         </div>
       </div>
 
-      {/* ACTIONS */}
-      <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15, marginBottom: 30 }}>
+      {/* STATS OVERVIEW */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 30 }}>
+        <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #43a047', borderRadius: 16 }}>
+          <div style={{ color: '#43a047', fontSize: '2rem', fontWeight: 900 }}>{stats.todayHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>Today</div>
+        </div>
+        <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #1976d2', borderRadius: 16 }}>
+          <div style={{ color: '#1976d2', fontSize: '2rem', fontWeight: 900 }}>{stats.weekHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>This Week</div>
+        </div>
+        <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #8e24aa', borderRadius: 16 }}>
+          <div style={{ color: '#8e24aa', fontSize: '2rem', fontWeight: 900 }}>{stats.monthHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>This Month</div>
+        </div>
+      </div>
+
+      {/* QUICK CLOCK ACTIONS */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 30 }}>
         <button 
           onClick={handleClockIn} 
-          disabled={actioning || !selectedStaff}
-          style={{ background: 'var(--success)', color: 'white', border: 'none', padding: '20px', borderRadius: 20, fontSize: '1.1rem', fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, boxShadow: '0 6px 20px rgba(67, 160, 71, 0.3)', transition: 'transform 0.1s' }}
+          disabled={actioning}
+          style={{ background: '#43a047', color: '#fff', border: 'none', padding: '25px', borderRadius: 20, fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 8px 15px rgba(67, 160, 71, 0.3)', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
         >
-          <span style={{ fontSize: '1.8rem' }}>▶</span> {t('clockIn')}
+          <span style={{ fontSize: '2.5rem' }}>⏱️</span> {t('clockIn')}
         </button>
         <button 
           onClick={handleClockOut} 
-          disabled={actioning || !selectedStaff}
-          style={{ background: 'var(--danger)', color: 'white', border: 'none', padding: '20px', borderRadius: 20, fontSize: '1.1rem', fontWeight: 800, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, boxShadow: '0 6px 20px rgba(229, 57, 53, 0.3)', transition: 'transform 0.1s' }}
+          disabled={actioning}
+          style={{ background: '#e53935', color: '#fff', border: 'none', padding: '25px', borderRadius: 20, fontSize: '1.2rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 8px 15px rgba(229, 57, 53, 0.3)', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}
         >
-          <span style={{ fontSize: '1.8rem' }}>■</span> {t('clockOut')}
+          <span style={{ fontSize: '2.5rem' }}>⏹️</span> {t('clockOut')}
         </button>
       </div>
 
-      <div style={{ padding: '0 20px', marginBottom: 35 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h3 style={{ margin: 0, color: '#444', fontSize: '1.4rem' }}>Time Log</h3>
         <button 
-          onClick={() => { setManualForm({ ...manualForm, staffId: selectedStaff }); setShowManualModal(true); }}
-          className="btn" 
-          style={{ width: '100%', padding: '16px', borderRadius: 16, background: '#f8fafc', color: 'var(--text)', fontWeight: 700, border: '2px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}
+          onClick={() => setShowManualModal(true)}
+          style={{ background: 'white', border: '2px dashed #ccc', padding: '8px 20px', borderRadius: 12, cursor: 'pointer', fontWeight: 700, color: '#666' }}
         >
-          ➕ {t('addUserAccount') || 'Add Manual Entry'}
+          + Manual Entry
         </button>
       </div>
 
-      {/* RECENT ENTRIES */}
-      <div style={{ padding: '0 20px' }}>
-        <h3 className="section-label">{t('recentNotes') || 'Recent Timesheets'}</h3>
-        {loading ? <div className="spinner"></div> : entries.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">⏲️</div>
-            <p>{t('noEntries')}</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {entries.sort((a,b) => new Date(b.clockIn) - new Date(a.clockIn)).slice(0, 10).map(entry => {
-              const staffMember = staff.find(s => s._id === entry.staffId);
-              const isConfirmed = entry.confirmed;
-              const duration = calculateDiff(entry.clockIn, entry.clockOut);
+      {loading ? <div className="spinner"></div> : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          {staffEntriesByMonth(staffEntries).map((monthGroup, idx) => (
+            <div key={monthGroup.month} style={{ marginBottom: 20 }}>
+              <div style={{ background: '#f5f5f5', padding: '10px 20px', borderRadius: 10, marginBottom: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: '1.1rem', color: '#555' }}>{monthGroup.month}</strong>
+                <span style={{ color: '#1565c0', fontWeight: 800 }}>Total: {monthGroup.totalHours.toFixed(1)} hrs</span>
+              </div>
               
-              return (
-                <div key={entry._id} className="card" style={{ border: isConfirmed ? '1px solid var(--border)' : '2.5px solid #ffe0b2', padding: 22 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                    <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>{staffMember?.name || 'Staff Member'}</div>
-                    <div className={`badge badge-${isConfirmed ? 'confirmed' : 'pending'}`}>
-                      {isConfirmed ? `✓ ${t('confirmed')}` : t('pending')}
-                    </div>
-                  </div>
-                  
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.95rem', color: 'var(--text-muted)' }}>
-                    <div style={{ lineHeight: 1.5 }}>
-                      📅 {formatDate(entry.clockIn, lang)} <br/>
-                      <span style={{ color: 'var(--success)', fontWeight: 700 }}>▶ {formatTime(entry.clockIn, lang)}</span>
-                      {entry.clockOut && <span style={{ color: 'var(--danger)', fontWeight: 700 }}> — ■ {formatTime(entry.clockOut, lang)}</span>}
-                    </div>
-                    {entry.clockOut && (
-                      <div style={{ textAlign: 'right', alignSelf: 'flex-end' }}>
-                        <strong style={{ fontSize: '1.4rem', color: 'var(--text)', letterSpacing: -0.5 }}>{duration.toFixed(1)} {t('hours') || 'hrs'}</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {monthGroup.entries.map(e => {
+                  const duration = calculateDiff(e.clockIn, e.clockOut);
+                  return (
+                    <div key={e._id} style={{ background: 'white', padding: '15px 20px', borderRadius: 12, boxShadow: '0 2px 4px rgba(0,0,0,0.03)', borderLeft: `4px solid ${e.confirmed ? '#4caf50' : '#ff9800'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: 15, alignItems: 'center' }}>
+                         <div style={{ background: '#fcfcfc', padding: '8px', borderRadius: 8, textAlign: 'center', minWidth: 60, border: '1px solid #eee' }}>
+                           <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', color: '#888' }}>{new Date(e.clockIn).toLocaleDateString([], { weekday: 'short' })}</div>
+                           <div style={{ fontSize: '1.1rem', fontWeight: 900 }}>{new Date(e.clockIn).getDate()}</div>
+                         </div>
+                         <div>
+                           <div style={{ fontWeight: 600, color: '#444' }}>{formatTime(e.clockIn, lang)} → {formatTime(e.clockOut, lang)}</div>
+                           {!e.confirmed && <span style={{ fontSize: '0.75rem', background: '#fff3e0', color: '#e65100', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>PENDING APPROVAL</span>}
+                         </div>
                       </div>
-                    )}
-                  </div>
-                  
-                  {!isConfirmed && entry.clockOut && (
-                    <button 
-                      onClick={() => handleConfirm(entry._id)}
-                      className="btn btn-secondary"
-                      style={{ width: '100%', marginTop: 18, fontWeight: 800, background: 'var(--primary-light)', color: 'var(--primary-dark)' }}
-                      disabled={actioning}
-                    >
-                      {t('verifyTimesheet')}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1565c0' }}>{duration.toFixed(1)} <small style={{ fontSize: '0.8rem' }}>h</small></div>
+                        {!e.confirmed && <button onClick={() => handleConfirm(e._id)} style={{ background: '#eee', border: 'none', padding: '4px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', marginTop: 4 }}>APPROVE</button>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {staffEntries.length === 0 && (
+            <div className="empty-state" style={{ background: 'white', padding: '40px', borderRadius: 16 }}>
+              <div style={{ fontSize: '3rem', marginBottom: 10 }}>⌛</div>
+              <p style={{ color: '#888', fontWeight: 600 }}>No time entries found for this staff member.</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* MANUAL ENTRY MODAL */}
       {showManualModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h3 className="modal-title">{t('addUserAccount') || 'Manual Entry'}</h3>
-            <form onSubmit={handleManualEntry} style={{ display: 'flex', flexDirection: 'column', gap: 18, marginTop: 20 }}>
+        <div className="modal-overlay" style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(5px)' }}>
+          <div className="modal-content" style={{ maxWidth: 450, borderRadius: 24 }}>
+            <h3 style={{ fontSize: '1.5rem', margin: '0 0 20px 0' }}>Add Manual Shift</h3>
+            <form onSubmit={handleManualEntry} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               <div>
-                <label className="form-label">{t('fullNameReq')}</label>
-                <select className="input" value={manualForm.staffId} onChange={e => setManualForm({...manualForm, staffId: e.target.value})} required>
-                  <option value="">{t('selectStaff') || 'Select...'}</option>
-                  {staff.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                </select>
+                <label className="form-label">Date</label>
+                <input type="date" className="input" value={manualForm.date} onChange={e => setManualForm({...manualForm, date: e.target.value})} required />
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
                 <div>
-                  <label className="form-label">{t('date')}</label>
-                  <input type="date" className="input" value={manualForm.date} onChange={e => setManualForm({...manualForm, date: e.target.value})} required />
-                </div>
-                <div>
-                  <label className="form-label">{t('shift')}</label>
-                  <select className="input" value={manualForm.preset} onChange={e => onPresetChange(e.target.value)}>
-                    {Object.entries(SHIFT_PRESETS).map(([key, p]) => (
-                      <option key={key} value={key}>{p.label}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div>
-                  <label className="form-label">{t('clockIn')}</label>
+                  <label className="form-label">Start Time</label>
                   <input type="time" className="input" value={manualForm.start} onChange={e => setManualForm({...manualForm, start: e.target.value})} required />
                 </div>
                 <div>
-                  <label className="form-label">{t('clockOut')}</label>
+                  <label className="form-label">End Time</label>
                   <input type="time" className="input" value={manualForm.end} onChange={e => setManualForm({...manualForm, end: e.target.value})} required />
                 </div>
               </div>
 
-              <div className="modal-actions" style={{ display: 'flex', gap: 12, marginTop: 10 }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowManualModal(false)}>{t('cancel')}</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={actioning}>{t('save')}</button>
+              <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+                <button type="button" className="btn" style={{ flex: 1, background: '#eee' }} onClick={() => setShowManualModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>Save Shift</button>
               </div>
             </form>
           </div>
@@ -328,4 +308,18 @@ export default function TimeTracking() {
       )}
     </div>
   );
+}
+
+// HEPLER
+function staffEntriesByMonth(entries) {
+  const groups = {};
+  entries.forEach(e => {
+    const d = new Date(e.clockIn);
+    const month = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    if (!groups[month]) groups[month] = { month, entries: [], totalHours: 0 };
+    groups[month].entries.push(e);
+    groups[month].totalHours += calculateDiff(e.clockIn, e.clockOut);
+  });
+  
+  return Object.values(groups).sort((a,b) => new Date(b.entries[0].clockIn) - new Date(a.entries[0].clockIn));
 }

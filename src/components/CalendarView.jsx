@@ -29,11 +29,11 @@ export default function CalendarView({ readOnly = false }) {
         StaffApi.getAll().catch(() => ({ data: [] }))
       ]);
       
-      setEvents(eRes.data || []);
-      setStaff(stRes.data || []);
+      setEvents(Array.isArray(eRes.data) ? eRes.data : []);
+      setStaff(Array.isArray(stRes.data) ? stRes.data : []);
       
-      const approvedShifts = (sRes.data || []).filter(s => s.status === 'Approved');
-      const confirmedTime = (tRes.data || []).filter(t => t.confirmed);
+      const approvedShifts = (Array.isArray(sRes.data) ? sRes.data : []).filter(s => s.status === 'Approved');
+      const confirmedTime = (Array.isArray(tRes.data) ? tRes.data : []).filter(t => t.confirmed);
       
       const mergedShifts = [
         ...approvedShifts.map(s => ({ ...s, type: 'Planned Shift', isPlanned: true })),

@@ -9,6 +9,7 @@ export default function AdminNotes() {
   const [children, setChildren] = useState([]);
   const [selectedChild, setSelectedChild] = useState('');
   const [noteText, setNoteText] = useState('');
+  const [mood, setMood] = useState('😊');
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,7 +18,8 @@ export default function AdminNotes() {
       try {
         const [cRes, nRes] = await Promise.all([ChildrenApi.getAll(), DailyNotesApi.getAll()]);
         setChildren(cRes.data || []);
-        setNotes((nRes.data || []).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)));
+        const fetchedNotes = (nRes.data || []).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        setNotes(fetchedNotes);
       } catch (err) { }
       setLoading(false);
     }
@@ -25,83 +27,124 @@ export default function AdminNotes() {
   }, []);
 
   const handleSave = async () => {
-    if (!selectedChild || !noteText) return;
+    if (!selectedChild || !noteText) {
+      addToast('Please select a child and enter a note', 'warning');
+      return;
+    }
     try {
-      const newNote = { childId: selectedChild, note: noteText, timestamp: new Date().toISOString() };
+      const fullNote = `${mood} ${noteText}`;
+      const newNote = { childId: selectedChild, note: fullNote, timestamp: new Date().toISOString() };
       await DailyNotesApi.create(newNote);
       setNotes([newNote, ...notes]);
       setNoteText('');
-      addToast(t('noteSaved') || 'Note saved!', 'success');
+      setMood('😊');
+      setSelectedChild('');
+      addToast(t('noteSaved') || 'Note saved successfully!', 'success');
     } catch(err) { addToast(t('failedToSaveNote') || 'Failed to save', 'error'); }
   };
 
+  const moods = [
+    { icon: '😊', label: 'Happy' },
+    { icon: '😇', label: 'Angel' },
+    { icon: '😴', label: 'Sleepy' },
+    { icon: '🤒', label: 'Sick' },
+    { icon: '😢', label: 'Sad' },
+    { icon: '😋', label: 'Hungry' },
+    { icon: '⚡', label: 'Energetic' },
+  ];
+
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
-      <div className="page-header" style={{ marginBottom: 25 }}>
-        <div>
-          <h2 className="page-title">📋 {t('notes')}</h2>
-          <p className="page-subtitle">{t('writeQuickNotes') || 'Write quick daily notes for children. Parents will see these updates.'}</p>
-        </div>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #FF9800, #F57C00)', padding: '30px', borderRadius: 20, color: 'white', marginBottom: 25, boxShadow: '0 10px 20px rgba(255, 152, 0, 0.2)' }}>
+        <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>📋 Daily Notes</h2>
+        <p style={{ margin: 0, opacity: 0.9 }}>Share daily highlights and updates with parents.</p>
       </div>
       
-      <div className="card" style={{ padding: 25, marginBottom: 30, background: '#fff' }}>
-        <h3 className="section-label" style={{ marginBottom: 20 }}>{t('newNote')}</h3>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+      <div className="card" style={{ padding: '30px', marginBottom: 30, background: '#fff', borderRadius: 16 }}>
+        <h3 style={{ margin: '0 0 20px 0', fontSize: '1.2rem', color: '#444' }}>{t('createUpdate') || 'Create Daily Update'}</h3>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div className="form-group">
-            <label className="form-label">{t('selectChild')}</label>
-            <select className="input" value={selectedChild} onChange={e => setSelectedChild(e.target.value)}>
-              <option value="">{t('selectReason')}</option>
+            <label className="form-label" style={{ fontWeight: 700, marginBottom: 8 }}>{t('selectChild')}</label>
+            <select className="input" value={selectedChild} onChange={e => setSelectedChild(e.target.value)} style={{ padding: '12px' }}>
+              <option value="">{t('chooseChild') || '-- Choose child --'}</option>
               {children.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
             </select>
           </div>
-          
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label">{t('notes')}</label>
-            <textarea 
-              className="input" 
-              rows="4" 
-              placeholder={t('writeNotePrompt')}
-              value={noteText}
-              onChange={e => setNoteText(e.target.value)}
-              style={{ paddingBottom: 40 }}
-            />
-            <div style={{ padding: '8px 10px', background: '#f5f5f5', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, border: '1px solid var(--border)', borderTop: 'none', display: 'flex', gap: 10, marginTop: -6, overflowX: 'auto' }}>
-              {['😊','😍','😴','🍼','💩','🤒','🎨','🎶','🍎','🏆'].map(emoji => (
+
+          <div>
+            <label className="form-label" style={{ fontWeight: 700, marginBottom: 12, display: 'block' }}>{t('moodOfToday') || "Mood of the day"}</label>
+            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+              {moods.map(m => (
                 <button 
-                  key={emoji}
-                  type="button"
-                  onClick={() => setNoteText(prev => prev + emoji)}
-                  style={{ background: 'white', border: '1px solid #ddd', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                  key={m.icon} 
+                  onClick={() => setMood(m.icon)}
+                  style={{ 
+                    background: mood === m.icon ? 'var(--primary-light)' : 'white', 
+                    border: mood === m.icon ? '2px solid var(--primary)' : '1px solid #ddd', 
+                    padding: '10px 15px', 
+                    borderRadius: 12, 
+                    cursor: 'pointer', 
+                    fontSize: '1.5rem',
+                    transition: 'transform 0.2s, background 0.2s',
+                    transform: mood === m.icon ? 'scale(1.1)' : 'scale(1)'
+                  }}
+                  title={m.label}
                 >
-                  {emoji}
+                  {m.icon}
                 </button>
               ))}
             </div>
           </div>
           
-          <button className="btn btn-primary" onClick={handleSave} style={{ alignSelf: 'flex-start', padding: '12px 30px' }}>
-            {t('saveNote')}
+          <div className="form-group">
+            <label className="form-label" style={{ fontWeight: 700, marginBottom: 8 }}>{t('messageForParent') || 'Message for Parent'}</label>
+            <textarea 
+              className="input" 
+              rows="4" 
+              placeholder={t('notePlaceholder') || "What did they do today?..."}
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              style={{ fontSize: '1rem', padding: '15px' }}
+            />
+          </div>
+          
+          <button className="btn btn-primary" onClick={handleSave} style={{ alignSelf: 'flex-start', padding: '15px 40px', fontSize: '1.1rem', fontWeight: 800, borderRadius: 12 }}>
+             🚀 {t('postNote') || 'Post Update'}
           </button>
         </div>
       </div>
 
-      <h3 className="section-label" style={{ marginBottom: 15 }}>{t('recentNotes')}</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <h3 style={{ margin: 0, fontSize: '1.3rem', color: '#444' }}>{t('recentTimeline') || 'Recent Timeline'}</h3>
+      </div>
+
       {loading ? <div className="spinner"></div> : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
           {notes.map((n, i) => (
-            <div key={i} className="card" style={{ borderLeft: '5px solid var(--primary)', padding: 20 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)' }}>
-                  {children.find(c => c._id === n.childId)?.name || 'Unknown Child'}
-                </div>
-                <div style={{ color: 'var(--text-light)', fontSize: '0.8rem', fontWeight: 600 }}>
-                  {new Date(n.timestamp).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+            <div key={i} className="card" style={{ borderLeft: '6px solid var(--primary)', padding: '20px', borderRadius: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+                <div>
+                  <div style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1a1a1a' }}>
+                    {children.find(c => c._id === n.childId)?.name || 'Child Account'}
+                  </div>
+                  <div style={{ color: '#888', fontSize: '0.8rem', fontWeight: 600, marginTop: 2 }}>
+                    {new Date(n.timestamp).toLocaleString(lang === 'he' ? 'he-IL' : 'en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </div>
                 </div>
               </div>
-              <div style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.5 }}>{n.note}</div>
+              <div style={{ color: '#444', fontSize: '1.1rem', lineHeight: 1.6, background: '#f9f9f9', padding: '15px', borderRadius: 10, border: '1px solid #f0f0f0' }}>
+                {n.note}
+              </div>
             </div>
           ))}
-          {notes.length === 0 && <p className="empty-state">{t('noEntries') || 'No notes yet'}</p>}
+          {notes.length === 0 && (
+            <div className="empty-state" style={{ padding: '60px', background: 'white', borderRadius: 16 }}>
+              <div style={{ fontSize: '3rem', marginBottom: 10 }}>📭</div>
+              <p style={{ color: '#888', fontWeight: 600 }}>No daily notes have been posted yet.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

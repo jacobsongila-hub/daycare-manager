@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ChildrenApi, AttendanceApi, markAttendance } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
-import ConfirmModal from '../../components/ConfirmModal';
+import { useConfirm } from '../../context/ConfirmContext';
+import Modal from '../../components/Modal';
 
 export default function AdminAttendance() {
   const [children, setChildren] = useState([]);
@@ -11,9 +12,9 @@ export default function AdminAttendance() {
   const [loading, setLoading] = useState(true);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [reasonData, setReasonData] = useState({ childId: null, status: null });
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, status: null });
   const { addToast } = useNotification();
   const { t } = useLanguage();
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -22,8 +23,8 @@ export default function AdminAttendance() {
         ChildrenApi.getAll().catch(() => ({ data: [] })),
         AttendanceApi.getAll().catch(() => ({ data: [] }))
       ]);
-      const kids = cRes.data || [];
-      const atts = aRes.data || [];
+      const kids = Array.isArray(cRes.data) ? cRes.data : [];
+      const atts = Array.isArray(aRes.data) ? aRes.data : [];
       setChildren(kids);
       const daysAtt = atts.filter(a => a.date === date);
       const dict = {};
@@ -39,7 +40,6 @@ export default function AdminAttendance() {
   useEffect(() => { loadData(); }, [date]);
 
   const updateStatus = async (childId, newStatus, reason = null) => {
-    // Late or Absent requires a reason
     if ((newStatus === 'Absent' || newStatus === 'Late') && !reason) {
       setReasonData({ childId, status: newStatus });
       setShowReasonModal(true);
@@ -50,9 +50,6 @@ export default function AdminAttendance() {
       const payload = { childId, date, status: newStatus, reason };
       if (newStatus === 'Present' && attendance[childId]?.status !== 'Present') {
         payload.checkIn = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-      } else if (newStatus === 'Absent') {
-        payload.checkIn = '';
-        payload.checkOut = '';
       }
       
       const res = await markAttendance(payload); 
@@ -64,13 +61,10 @@ export default function AdminAttendance() {
     }
   };
 
-  const requestMarkAll = (status) => {
-    setConfirmModal({ isOpen: true, status });
-  };
+  const requestMarkAll = async (status) => {
+    const msg = t('confirmMarkAllMsg')?.replace('{{status}}', t(status.toLowerCase()) || status) || `Mark all children as ${status}?`;
+    if (!(await confirm(msg, t('confirmMarkAll') || 'Confirm Bulk Update', status === 'Absent'))) return;
 
-  const handleConfirmMarkAll = async () => {
-    const status = confirmModal.status;
-    setConfirmModal({ isOpen: false, status: null });
     try {
       await Promise.all(children.map(child => {
         if (attendance[child._id]?.status === status) return Promise.resolve();
@@ -85,84 +79,90 @@ export default function AdminAttendance() {
 
   const handleReasonSubmit = (e) => {
     e.preventDefault();
-    const reason = e.target.reason.value;
-    updateStatus(reasonData.childId, reasonData.status, reason);
+    const reasonSelection = e.target.reason.value;
+    updateStatus(reasonData.childId, reasonData.status, reasonSelection);
   };
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
       {/* Header */}
-      <div className="page-header" style={{ marginBottom: 25 }}>
+      <div style={{ background: 'linear-gradient(135deg, #00796B, #4DB6AC)', padding: '30px', borderRadius: 20, color: 'white', marginBottom: 25, boxShadow: '0 8px 25px rgba(0, 121, 107, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
         <div>
-          <h2 className="page-title">📅 {t('attendance')}</h2>
-          <p className="page-subtitle">{t('attendanceProgress')}</p>
+          <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>📅 {t('attendance')}</h2>
+          <p style={{ margin: 0, opacity: 0.9 }}>Track children status and check-in times.</p>
         </div>
         <input 
           type="date" 
           value={date} 
           onChange={e => setDate(e.target.value)} 
           className="input" 
-          style={{ width: 'auto', padding: '10px 18px', fontWeight: 600 }} 
+          style={{ width: 'auto', padding: '12px 20px', fontWeight: 800, borderRadius: 14, border: 'none', background: 'rgba(255,255,255,0.2)', color: 'white' }} 
         />
       </div>
 
       {/* Global Actions */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 25, flexWrap: 'wrap' }}>
-        <button className="btn btn-secondary" style={{ background: 'var(--success-light)', color: 'var(--success)', flex: 1, minWidth: 150 }} onClick={() => requestMarkAll('Present')}>✅ {t('markAllPresent')}</button>
-        <button className="btn btn-secondary" style={{ background: 'var(--danger-light)', color: 'var(--danger)', flex: 1, minWidth: 150 }} onClick={() => requestMarkAll('Absent')}>❌ {t('markAllAbsent')}</button>
-        <button className="btn btn-secondary" style={{ flex: 0.5, minWidth: 100 }} onClick={loadData}>🔄 {t('refresh')}</button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 0.5fr', gap: 15, marginBottom: 25 }}>
+        <button onClick={() => requestMarkAll('Present')} style={{ padding: '18px', borderRadius: 16, border: 'none', background: '#e8f5e9', color: '#2e7d32', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}>
+           ✅ {t('markAllPresent') || 'Mark All Present'}
+        </button>
+        <button onClick={() => requestMarkAll('Absent')} style={{ padding: '18px', borderRadius: 16, border: 'none', background: '#ffebee', color: '#c62828', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}>
+           ❌ {t('markAllAbsent') || 'Mark All Absent'}
+        </button>
+        <button onClick={loadData} style={{ padding: '18px', borderRadius: 16, border: 'none', background: '#f5f5f5', color: '#666', fontWeight: 800, cursor: 'pointer' }}>
+           🔄
+        </button>
       </div>
 
-      {loading ? <div className="spinner" style={{ margin: '40px auto' }}></div> : (
+      {loading ? <div className="spinner"></div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {children.length === 0 ? <p className="empty-state">{t('noEntries')}</p> : children.map(child => {
+          {children.length === 0 ? (
+            <div className="empty-state" style={{ background: 'white', padding: 60, borderRadius: 20 }}>
+               <div style={{ fontSize: '3rem', marginBottom: 15 }}>👶</div>
+               <p style={{ color: '#999', fontWeight: 600 }}>No children found in the database.</p>
+            </div>
+          ) : children.map(child => {
             const att = attendance[child._id] || { status: 'Unmarked' };
-            const isPresent = att.status === 'Present';
-            const isAbsent = att.status === 'Absent';
-            const isLate = att.status === 'Late';
+            const status = att.status;
             
             return (
-              <div key={child._id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 20px', borderLeft: isPresent ? '5px solid var(--success)' : (isLate ? '5px solid var(--warning)' : (isAbsent ? '5px solid var(--danger)' : '5px solid var(--border)')) }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-                  <div className="avatar avatar-blue" style={{ width: 50, height: 50, fontSize: '1.4rem' }}>
-                    {child.avatar ? <img src={child.avatar} alt={child.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👶'}
+              <div key={child._id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', borderRadius: 18, borderLeft: `6px solid ${status === 'Present' ? '#4caf50' : (status === 'Late' ? '#ff9800' : (status === 'Absent' ? '#f44336' : '#eee'))}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+                  <div style={{ width: 55, height: 55, borderRadius: 15, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', overflow: 'hidden' }}>
+                    {child.avatar ? <img src={child.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👶'}
                   </div>
                   <div>
-                    <strong style={{ fontSize: '1.2rem', color: 'var(--text)' }}>{child.name}</strong>
-                    <div style={{ fontSize: '0.85rem', color: 'var(--text-light)', marginTop: 4, fontWeight: 600 }}>
-                      {att.status === 'Unmarked' ? <span style={{ color: 'var(--text-light)' }}>{t('notMarked') || 'Not Marked'}</span> : (
-                        <span style={{ color: isPresent ? 'var(--success)' : (isAbsent ? 'var(--danger)' : 'var(--warning)') }}>
-                          {isPresent && att.checkIn && `🕒 ${att.checkIn}`} 
-                          {isAbsent && `❌ ${t('absent')} ${att.reason ? `(${t(att.reason.toLowerCase()) || att.reason})` : ''}`}
-                          {isLate && `⚠️ ${t('late') || 'Late'} ${att.reason ? `(${t(att.reason.toLowerCase()) || att.reason})` : ''}`}
+                    <h4 style={{ margin: '0 0 5px 0', fontSize: '1.15rem' }}>{child.name}</h4>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 700, color: status === 'Present' ? '#2e7d32' : (status === 'Absent' ? '#c62828' : '#e65100') }}>
+                      {status === 'Unmarked' ? <span style={{ color: '#aaa' }}>Pending...</span> : (
+                        <span>
+                           {status === 'Present' && `🕒 ${att.checkIn || '—'}`}
+                           {status === 'Absent' && `❌ Absent ${att.reason ? `(${att.reason})` : ''}`}
+                           {status === 'Late' && `⚠️ Late ${att.reason ? `(${att.reason})` : ''}`}
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
                 
-                <div style={{ display: 'flex', gap: 6, background: 'var(--surface-2)', padding: 5, borderRadius: 12 }}>
-                  <button 
-                    onClick={() => updateStatus(child._id, 'Present')}
-                    className="btn btn-sm"
-                    style={{ background: isPresent ? 'var(--success)' : 'transparent', color: isPresent ? 'white' : 'var(--text-muted)', border: 'none', minWidth: 70, fontWeight: 700 }}
-                  >
-                    {t('present')}
-                  </button>
-                  <button 
-                    onClick={() => updateStatus(child._id, 'Late')}
-                    className="btn btn-sm"
-                    style={{ background: isLate ? 'var(--warning)' : 'transparent', color: isLate ? 'white' : 'var(--text-muted)', border: 'none', minWidth: 70, fontWeight: 700 }}
-                  >
-                    {t('late') || 'Late'}
-                  </button>
-                  <button 
-                    onClick={() => updateStatus(child._id, 'Absent')}
-                    className="btn btn-sm"
-                    style={{ background: isAbsent ? 'var(--danger)' : 'transparent', color: isAbsent ? 'white' : 'var(--text-muted)', border: 'none', minWidth: 70, fontWeight: 700 }}
-                  >
-                    {t('absent')}
-                  </button>
+                <div style={{ display: 'flex', gap: 8, background: '#f8f8f8', padding: '6px', borderRadius: 14 }}>
+                  {['Present', 'Late', 'Absent'].map(s => (
+                    <button
+                      key={s}
+                      onClick={() => updateStatus(child._id, s)}
+                      style={{
+                        padding: '10px 15px',
+                        borderRadius: 10,
+                        border: 'none',
+                        background: status === s ? (s === 'Present' ? '#4caf50' : (s === 'Late' ? '#ff9800' : '#f44336')) : 'transparent',
+                        color: status === s ? 'white' : '#666',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        fontSize: '0.8rem'
+                      }}
+                    >
+                      {t(s.toLowerCase()) || s}
+                    </button>
+                  ))}
                 </div>
               </div>
             );
@@ -170,43 +170,27 @@ export default function AdminAttendance() {
         </div>
       )}
 
-      {/* Reason Modal */}
-      {showReasonModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3 className="modal-title">{t('reason')} - {t(reasonData.status?.toLowerCase()) || reasonData.status}</h3>
-              <button className="modal-close" onClick={() => setShowReasonModal(false)}>✕</button>
-            </div>
-            <p style={{ color: 'var(--text-muted)', marginBottom: 20, fontSize: '0.95rem' }}>{t('selectReason')}</p>
-            <form onSubmit={handleReasonSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-              <select name="reason" required className="input" autoFocus>
-                <option value="">{t('selectReason')}</option>
-                <option value="Sick">{t('sick')} 🤒</option>
-                <option value="Vacation">{t('vacation')} ✈️</option>
-                <option value="Dr's Appointment">{t('doctor')} 🏥</option>
-                <option value="Personal">{t('personal')} 👨‍👩‍👧</option>
-                <option value="Other">{t('other')} 📝</option>
+      {/* REASON MODAL */}
+      <Modal 
+        isOpen={showReasonModal} 
+        onClose={() => setShowReasonModal(false)}
+        title={`${t('reason') || 'Set Reason'} - ${reasonData.status}`}
+      >
+        <form onSubmit={handleReasonSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+           <div>
+              <label className="form-label">{t('selectReason') || 'Why is the child late/absent?'}</label>
+              <select name="reason" className="input" autoFocus required>
+                 <option value="Sick">Sick 🤒</option>
+                 <option value="Vacation">Vacation ✈️</option>
+                 <option value="Family">Family Reason 🏠</option>
+                 <option value="Other">Other 📝</option>
               </select>
-              <div className="modal-actions" style={{ marginTop: 10, display: 'flex', gap: 12 }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowReasonModal(false)}>{t('cancel')}</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 2 }}>{t('save')}</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <ConfirmModal 
-        isOpen={confirmModal.isOpen} 
-        title={t('confirmMarkAll')}
-        message={t('confirmMarkAllMsg')?.replace('{{status}}', t(confirmModal.status?.toLowerCase()) || confirmModal.status)}
-        onConfirm={handleConfirmMarkAll}
-        onCancel={() => setConfirmModal({ isOpen: false, status: null })}
-        confirmText={t('yesMarkAll')}
-        cancelText={t('cancel')}
-        danger={confirmModal.status === 'Absent'}
-      />
+           </div>
+           <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '15px' }}>
+              Confirm Status
+           </button>
+        </form>
+      </Modal>
     </div>
   );
 }

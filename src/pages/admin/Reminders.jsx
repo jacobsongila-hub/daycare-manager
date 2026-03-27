@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNotification } from '../../context/NotificationContext';
 import { RemindersApi } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function Reminders() {
   const { addToast } = useNotification();
+  const { confirm } = useConfirm();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newTitle, setNewTitle] = useState('');
 
   const loadData = async () => {
     setLoading(true);
@@ -23,12 +26,12 @@ export default function Reminders() {
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
+    if (!newTitle.trim()) return;
     try {
-      await RemindersApi.create(data);
-      e.target.reset();
+      await RemindersApi.create({ title: newTitle, dueDate: new Date().toISOString().split('T')[0], completed: false });
+      setNewTitle('');
       loadData();
+      addToast('Reminder added', 'success');
     } catch(err) { addToast('Error creating reminder', 'error'); }
   };
 
@@ -40,9 +43,11 @@ export default function Reminders() {
   };
 
   const handleDelete = async (id) => {
+    if (!(await confirm('Delete this reminder?', 'Confirm Delete', true))) return;
     try {
       await RemindersApi.delete(id);
       loadData();
+      addToast('Reminder deleted', 'success');
     } catch(err) { addToast('Delete failed', 'error'); }
   };
 
@@ -51,60 +56,84 @@ export default function Reminders() {
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
-      <h2 style={{ marginBottom: 20 }}>To-Do Reminders</h2>
+      {/* Header */}
+      <div style={{ background: 'linear-gradient(135deg, #FFD54F, #FBC02D)', padding: '30px', borderRadius: 20, color: '#444', marginBottom: 25, boxShadow: '0 10px 20px rgba(251, 192, 45, 0.2)' }}>
+        <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>📌 Quick Reminders</h2>
+        <p style={{ margin: 0, opacity: 0.9, fontWeight: 600 }}>Sticky notes for things you need to remember.</p>
+      </div>
 
-      <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 30 }}>
-        <h3 style={{ margin: '0 0 15px 0' }}>Add Reminder</h3>
-        <form onSubmit={handleCreate} style={{ display: 'flex', gap: 15, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <input name="title" placeholder="Reminder Task (e.g., Renew insurance, Call plumber)" required className="input" style={{ flex: 2, minWidth: 200 }} />
-          <input name="dueDate" type="date" required className="input" style={{ flex: 1, minWidth: 150 }} />
-          <button type="submit" className="btn btn-primary" style={{ padding: '12px 20px' }}>➕ Add</button>
+      <div className="card" style={{ padding: '20px', borderRadius: 16, background: '#fff', marginBottom: 30, boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+        <form onSubmit={handleCreate} style={{ display: 'flex', gap: 15 }}>
+          <input 
+            value={newTitle}
+            onChange={e => setNewTitle(e.target.value)}
+            placeholder="I need to remember to..." 
+            className="input" 
+            style={{ flex: 1, padding: '15px', borderRadius: 12, border: '2px solid #eee', fontSize: '1.1rem' }} 
+          />
+          <button type="submit" className="btn btn-primary" style={{ padding: '0 30px', background: '#FBC02D', color: '#444', fontWeight: 800, borderRadius: 12 }}>
+            Add Note
+          </button>
         </form>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+        {loading ? <div className="spinner"></div> : (
+          <>
+            {pending.map((r, i) => (
+              <div key={r._id} style={{ 
+                background: i % 2 === 0 ? '#FFF9C4' : '#E1F5FE', 
+                padding: '25px', 
+                borderRadius: 4, 
+                position: 'relative', 
+                minHeight: 180,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                boxShadow: '2px 5px 10px rgba(0,0,0,0.1)',
+                transform: `rotate(${i % 2 === 0 ? '-1deg' : '1.5deg'})`,
+                transition: 'transform 0.2s',
+                cursor: 'default'
+              }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 600, color: '#333', lineHeight: 1.4 }}>{r.title}</div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 20 }}>
+                  <button onClick={() => toggleComplete(r)} style={{ background: 'rgba(255,255,255,0.5)', border: 'none', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontWeight: 800, color: '#2e7d32', fontSize: '0.85rem' }}>
+                    DONE ✓
+                  </button>
+                  <button onClick={() => handleDelete(r._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', opacity: 0.6 }}>🗑️</button>
+                </div>
+              </div>
+            ))}
+            
+            {completed.map((r, i) => (
+              <div key={r._id} style={{ 
+                background: '#f5f5f5', 
+                padding: '20px', 
+                borderRadius: 4, 
+                minHeight: 150,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                opacity: 0.6,
+                textDecoration: 'line-through'
+              }}>
+                <div style={{ fontSize: '1.1rem', color: '#888' }}>{r.title}</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button onClick={() => toggleComplete(r)} style={{ background: '#eee', border: 'none', padding: '4px 8px', borderRadius: 4, cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}>UNDO</button>
+                  <button onClick={() => handleDelete(r._id)} style={{ background: 'none', border: 'none', cursor: 'pointer', opacity: 0.5 }}>🗑️</button>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
         
-        {/* Pending */}
-        <div>
-          <h3 style={{ margin: '0 0 15px 0', color: '#1565c0' }}>Pending ({pending.length})</h3>
-          {loading ? <div className="spinner"></div> : pending.length === 0 ? <p className="empty-state">All caught up!</p> : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {pending.map(r => (
-                <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: 15, borderRadius: 8, borderLeft: '4px solid #1565c0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0' }}>{r.title}</h4>
-                    <div style={{ fontSize: '0.8rem', color: '#d32f2f' }}>⏰ Due: {r.dueDate}</div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn" onClick={() => toggleComplete(r)} style={{ background: '#e8f5e9', color: '#2e7d32' }}>✓ Done</button>
-                    <button className="btn" onClick={() => handleDelete(r._id)} style={{ border: 'none', background: 'none' }}>🗑️</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Completed */}
-        <div>
-          <h3 style={{ margin: '0 0 15px 0', color: '#4caf50' }}>Completed ({completed.length})</h3>
-          {loading ? <div className="spinner"></div> : completed.length === 0 ? <p className="empty-state">No completed items.</p> : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {completed.map(r => (
-                <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f5f5f5', padding: 15, borderRadius: 8, opacity: 0.8 }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 5px 0', textDecoration: 'line-through', color: '#888' }}>{r.title}</h4>
-                  </div>
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button className="btn" onClick={() => toggleComplete(r)}>Undo</button>
-                    <button className="btn" onClick={() => handleDelete(r._id)} style={{ border: 'none', background: 'none' }}>🗑️</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
+        {!loading && reminders.length === 0 && (
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', color: '#ccc' }}>
+             <div style={{ fontSize: '4rem', marginBottom: 20 }}>📝</div>
+             <p style={{ fontSize: '1.2rem', fontWeight: 600 }}>Your reminder board is empty.</p>
+          </div>
+        )}
       </div>
     </div>
   );
