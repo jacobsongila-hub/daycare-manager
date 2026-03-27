@@ -31,7 +31,10 @@ export default function AdminLayout() {
             </div>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>⎋ {t('logout')}</button>
+        <button className="logout-btn" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.2)', padding: '6px 12px', borderRadius: 8, color: 'white', fontWeight: 600, fontSize: '0.85rem' }}>
+          <span>🚪</span>
+          {t('logout')}
+        </button>
       </header>
 
       <nav className="bottom-nav">
