@@ -3,7 +3,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { ChildrenApi, DailyNotesApi } from '../../services/api';
 
 export default function AdminNotes() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [children, setChildren] = useState([]);
   const [selectedChild, setSelectedChild] = useState('');
   const [noteText, setNoteText] = useState('');
@@ -29,42 +29,64 @@ export default function AdminNotes() {
       await DailyNotesApi.create(newNote);
       setNotes([newNote, ...notes]);
       setNoteText('');
-      alert('Note saved!');
-    } catch(err) { alert('Failed to save'); }
+      alert(t('noteSaved') || 'Note saved!');
+    } catch(err) { alert(t('failedToSaveNote') || 'Failed to save'); }
   };
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
-      <h2>📋 {t('notes') || 'Daily Notes'}</h2>
-      <p style={{ color: '#555', marginBottom: 20 }}>Write quick daily notes for children. Parents will see these updates.</p>
+      <div className="page-header" style={{ marginBottom: 25 }}>
+        <div>
+          <h2 className="page-title">📋 {t('notes')}</h2>
+          <p className="page-subtitle">{t('writeQuickNotes') || 'Write quick daily notes for children. Parents will see these updates.'}</p>
+        </div>
+      </div>
       
-      <div style={{ background: '#fff', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', marginBottom: 20 }}>
-        <h3 style={{ margin: '0 0 15px 0' }}>New Note</h3>
-        <select className="input-field" value={selectedChild} onChange={e => setSelectedChild(e.target.value)} style={{ marginBottom: 15 }}>
-          <option value="">-- Select Child --</option>
-          {children.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-        </select>
-        <textarea 
-          className="input-field" 
-          rows="4" 
-          placeholder="Write note here (e.g. Ate all lunch, slept for 2 hours...)"
-          value={noteText}
-          onChange={e => setNoteText(e.target.value)}
-          style={{ marginBottom: 15 }}
-        />
-        <button className="btn btn-primary" onClick={handleSave}>Save Note</button>
+      <div className="card" style={{ padding: 25, marginBottom: 30, background: '#fff' }}>
+        <h3 className="section-label" style={{ marginBottom: 20 }}>{t('newNote')}</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+          <div className="form-group">
+            <label className="form-label">{t('selectChild')}</label>
+            <select className="input" value={selectedChild} onChange={e => setSelectedChild(e.target.value)}>
+              <option value="">{t('selectReason')}</option>
+              {children.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+            </select>
+          </div>
+          
+          <div className="form-group">
+            <label className="form-label">{t('notes')}</label>
+            <textarea 
+              className="input" 
+              rows="4" 
+              placeholder={t('writeNotePrompt')}
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+            />
+          </div>
+          
+          <button className="btn btn-primary" onClick={handleSave} style={{ alignSelf: 'flex-start', padding: '12px 30px' }}>
+            {t('saveNote')}
+          </button>
+        </div>
       </div>
 
-      <h3 style={{ margin: '0 0 15px 0' }}>Recent Notes</h3>
+      <h3 className="section-label" style={{ marginBottom: 15 }}>{t('recentNotes')}</h3>
       {loading ? <div className="spinner"></div> : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {notes.map((n, i) => (
-            <div key={i} style={{ background: 'white', padding: 15, borderRadius: 8, borderLeft: '4px solid #ff9800' }}>
-              <div style={{ fontWeight: 'bold', marginBottom: 5 }}>{children.find(c => c._id === n.childId)?.name || 'Unknown Child'}</div>
-              <div style={{ color: '#555', fontSize: '0.95rem', marginBottom: 5 }}>{n.note}</div>
-              <div style={{ color: '#aaa', fontSize: '0.8rem' }}>{new Date(n.timestamp).toLocaleString()}</div>
+            <div key={i} className="card" style={{ borderLeft: '5px solid var(--primary)', padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                <div style={{ fontWeight: 800, fontSize: '1.1rem', color: 'var(--text)' }}>
+                  {children.find(c => c._id === n.childId)?.name || 'Unknown Child'}
+                </div>
+                <div style={{ color: 'var(--text-light)', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {new Date(n.timestamp).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                </div>
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '1rem', lineHeight: 1.5 }}>{n.note}</div>
             </div>
           ))}
+          {notes.length === 0 && <p className="empty-state">{t('noEntries') || 'No notes yet'}</p>}
         </div>
       )}
     </div>

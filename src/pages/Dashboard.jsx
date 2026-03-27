@@ -10,9 +10,11 @@ const actionCards = [
   { to: '/admin/notes', icon: '📋', label: 'notes', color: '#FF9800' },
   { to: '/admin/families', icon: '👨‍👩‍👧', label: 'families', color: '#9C27B0' },
   { to: '/admin/docs', icon: '📁', label: 'mydocs', color: '#607D8B' },
-  { to: '/admin/reports', icon: '📥', label: 'reports', color: '#F44336' },
-  { to: '/admin/shift-requests', icon: '📋', label: 'shiftrequests', color: '#2196F3' },
+  { to: '/admin/reports', icon: '📊', label: 'reports', color: '#F44336' },
+  { to: '/admin/reminders', icon: '🔔', label: 'reminders', color: '#009688' },
+  { to: '/admin/shift-requests', icon: '🗓️', label: 'shiftrequests', color: '#2196F3' },
   { to: '/admin/staff-schedule', icon: '💼', label: 'staffschedule', color: '#3F51B5' },
+  { to: '/admin/emergency-contacts', icon: '🚨', label: 'emergencyContacts', color: '#D32F2F' },
 ];
 
 function getDayGreeting(t) {

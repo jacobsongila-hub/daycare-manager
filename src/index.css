@@ -247,7 +247,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-.form-input {
+.form-input, .input {
   width: 100%;
   padding: 14px 16px;
   border: 2px solid var(--border);
@@ -260,6 +260,17 @@ body {
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+}
+
+.form-input:focus, .input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
+  background: white;
+}
+
+textarea.input {
+  resize: vertical;
+  min-height: 100px;
 }
 
 /* ===== TOAST NOTIFICATIONS ===== */
@@ -618,13 +629,21 @@ body {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
-  z-index: 100;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
   display: flex;
-  align-items: flex-end;
+  align-items: center; /* Center on PC */
   justify-content: center;
-  padding: 0;
-  animation: fadeIn 0.2s ease;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    align-items: flex-end; /* Bottom sheet on mobile */
+    padding: 0;
+  }
 }
 
 @keyframes fadeIn {
@@ -632,15 +651,16 @@ body {
   to { opacity: 1; }
 }
 
-.modal {
+.modal, .modal-content {
   background: var(--surface);
   border-radius: 24px 24px 0 0;
-  padding: 24px 20px 32px;
+  padding: 28px 24px;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
-  animation: slideUp 0.25s ease;
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-lg);
 }
 
 @keyframes slideUp {
