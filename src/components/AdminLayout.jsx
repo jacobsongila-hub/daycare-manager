@@ -25,7 +25,10 @@ export default function AdminLayout() {
           <span className="header-logo">👑</span>
           <div>
             <h1 style={{ fontSize: 16 }}>Daycare Manager</h1>
-            <div style={{ fontSize: 11, opacity: 0.8, fontWeight: 500 }}>Owner Portal</div>
+            <div style={{ fontSize: 10, display: 'flex', gap: 5, alignItems: 'center', opacity: 0.8 }}>
+               <span style={{ fontWeight: 700 }}>Owner Portal</span>
+               <span style={{ opacity: 0.6 }}>• v1.1.0-POLISH</span>
+            </div>
           </div>
         </div>
         <button className="logout-btn" onClick={handleLogout}>⎋ {t('logout')}</button>
