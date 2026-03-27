@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = '/api'; // Use proxy for all environments to avoid CORS issues
+const BASE_URL = ''; // Use relative paths for proxy support; avoids /api/api doubling
 
 const api = axios.create({
   baseURL: BASE_URL,
