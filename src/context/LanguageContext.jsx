@@ -189,6 +189,14 @@ const translations = {
     primaryGuardians: 'Primary Guardians',
     manageFamiliesDesc: 'Manage family contacts and children profiles.',
     children: 'Children',
+    today: 'Today',
+    thisWeek: 'This Week',
+    thisMonth: 'This Month',
+    timeLog: 'Time Log',
+    manualEntry: 'Manual Entry',
+    pendingApproval: 'PENDING APPROVAL',
+    approve: 'APPROVE',
+    hoursShort: 'hrs',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -376,6 +384,14 @@ const translations = {
     primaryGuardians: 'אפוטרופוסים עיקריים',
     manageFamiliesDesc: 'ניהול אנשי קשר משפחתיים ופרופילי ילדים.',
     children: 'ילדים',
+    today: 'היום',
+    thisWeek: 'השבוע',
+    thisMonth: 'החודש',
+    timeLog: 'יומן שעות',
+    manualEntry: 'הזנה ידנית',
+    pendingApproval: 'ממתין לאישור',
+    approve: 'אשר',
+    hoursShort: 'שעות',
   }
 };
 

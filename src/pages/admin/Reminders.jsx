@@ -1,54 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { useNotification } from '../../context/NotificationContext';
-import { RemindersApi } from '../../services/api';
-import { useConfirm } from '../../context/ConfirmContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function Reminders() {
   const { addToast } = useNotification();
   const { confirm } = useConfirm();
+  const { t, lang } = useLanguage();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
 
-  const loadData = async () => {
+  const loadData = () => {
     setLoading(true);
-    try {
-      const res = await RemindersApi.getAll();
-      setReminders(res.data || []);
-    } catch (err) {
-      console.error('Error loading reminders', err);
-    } finally {
-      setLoading(false);
-    }
+    const data = JSON.parse(localStorage.getItem('reminders') || '[]');
+    setReminders(data);
+    setLoading(false);
   };
 
   useEffect(() => { loadData(); }, []);
 
-  const handleCreate = async (e) => {
+  const handleCreate = (e) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
-    try {
-      await RemindersApi.create({ title: newTitle, dueDate: new Date().toISOString().split('T')[0], completed: false });
-      setNewTitle('');
-      loadData();
-      addToast('Reminder added', 'success');
-    } catch(err) { addToast('Error creating reminder', 'error'); }
+    const newRem = { _id: Date.now().toString(), title: newTitle, completed: false, createdAt: new Date().toISOString() };
+    const updated = [newRem, ...reminders];
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    setNewTitle('');
+    setReminders(updated);
+    addToast(t('noteSaved') || 'Reminder added', 'success');
   };
 
-  const toggleComplete = async (reminder) => {
-    try {
-      await RemindersApi.update(reminder._id, { completed: !reminder.completed });
-      loadData();
-    } catch(err) { addToast('Status update failed', 'error'); }
+  const toggleComplete = (reminder) => {
+    const updated = reminders.map(r => r._id === reminder._id ? { ...r, completed: !r.completed } : r);
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    setReminders(updated);
   };
 
   const handleDelete = async (id) => {
-    if (!(await confirm('Delete this reminder?', 'Confirm Delete', true))) return;
-    try {
-      await RemindersApi.delete(id);
-      loadData();
-      addToast('Reminder deleted', 'success');
-    } catch(err) { addToast('Delete failed', 'error'); }
+    if (!(await confirm(t('confirmDelete') || 'Delete this reminder?', 'Confirm Delete', true))) return;
+    const updated = reminders.filter(r => r._id !== id);
+    localStorage.setItem('reminders', JSON.stringify(updated));
+    setReminders(updated);
+    addToast(t('photoDeleted') || 'Reminder deleted', 'success');
   };
 
   const pending = reminders.filter(r => !r.completed);

@@ -133,8 +133,8 @@ export default function FamilyManagement() {
                    {t('familyName')}: {fam.familyName}
                 </h3>
                 <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', flexWrap: 'wrap', gap: '10px 20px', marginTop: 8 }}>
-                  {fam.motherName && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>👩 <strong>{t('mother')}:</strong> {fam.motherName} ({fam.motherPhone})</span>}
-                  {fam.fatherName && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>👨 <strong>{t('father')}:</strong> {fam.fatherName} ({fam.fatherPhone})</span>}
+                  {fam.motherName && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>👩‍💼 <strong>{t('mother')}:</strong> {fam.motherName} ({fam.motherPhone})</span>}
+                  {fam.fatherName && <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>👨‍💼 <strong>{t('father')}:</strong> {fam.fatherName} ({fam.fatherPhone})</span>}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
@@ -159,7 +159,7 @@ export default function FamilyManagement() {
 
             {/* Authorized Pickups Area */}
             <div style={{ padding: '15px 25px', background: '#e3f2fd', color: '#1565c0', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border)' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚙 Authorized Pick-ups</h4>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚙 {t('authorizedPickups') || 'Authorized Pick-ups'}</h4>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {[1, 2, 3, 4].map(i => fam[`pickupName${i}`] && (
                   <div key={`pu-${i}`}>

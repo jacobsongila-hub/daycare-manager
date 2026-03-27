@@ -131,8 +131,8 @@ export default function AdminStaff() {
                 </div>
 
                 <div style={{ fontSize: '0.9rem', color: '#444' }}>
-                  <div>📧 {worker.email || 'No email'}</div>
-                  <div>📞 {worker.phone || 'No phone'}</div>
+                  <div>📧 {worker.email || t('noEmail') || 'No email'}</div>
+                  <div>📞 {worker.phone || t('noPhone') || 'No phone'}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 15, borderTop: '1px solid #f0f0f0' }}>

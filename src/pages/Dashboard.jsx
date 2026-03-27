@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNotification } from '../context/NotificationContext';
-import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi, TimeEntriesApi, RemindersApi } from '../services/api';
+import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi, TimeEntriesApi } from '../services/api';
 
 const actionCards = [
   { to: '/admin/attendance', icon: '📝', label: 'attendance', color: '#4CAF50' },
@@ -41,14 +41,13 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [childrenRes, attRes, staffRes, shiftRes, annRes, timeRes, remRes] = await Promise.all([
+        const [childrenRes, attRes, staffRes, shiftRes, annRes, timeRes] = await Promise.all([
           ChildrenApi.getAll().catch(() => ({ data: [] })),
           AttendanceApi.getAll().catch(() => ({ data: [] })),
           StaffApi.getAll().catch(() => ({ data: [] })),
           ShiftRequestsApi.getAll().catch(() => ({ data: [] })),
           AnnouncementsApi.getAll().catch(() => ({ data: [] })),
-          TimeEntriesApi.getAll().catch(() => ({ data: [] })),
-          RemindersApi.getAll().catch(() => ({ data: [] }))
+          TimeEntriesApi.getAll().catch(() => ({ data: [] }))
         ]);
 
         const children = Array.isArray(childrenRes.data) ? childrenRes.data : [];
@@ -56,7 +55,7 @@ export default function Dashboard() {
         const entries = Array.isArray(timeRes.data) ? timeRes.data : [];
         const shifts = Array.isArray(shiftRes.data) ? shiftRes.data : [];
         const anns = Array.isArray(annRes.data) ? annRes.data : [];
-        const rems = Array.isArray(remRes.data) ? remRes.data : [];
+        const rems = JSON.parse(localStorage.getItem('reminders') || '[]');
 
         // Calculate today's stats
         const todayStr = new Date().toISOString().split('T')[0];
@@ -113,14 +112,16 @@ export default function Dashboard() {
   const handleCreateReminder = async (e) => {
     e.preventDefault();
     const title = e.target.title.value;
-    const dueDate = e.target.dueDate?.value || new Date().toISOString().split('T')[0];
-    const data = { title, dueDate };
+    if (!title.trim()) return;
+    const newRem = { _id: Date.now().toString(), title, completed: false, createdAt: new Date().toISOString() };
     try {
-      await RemindersApi.create(data);
+      const current = JSON.parse(localStorage.getItem('reminders') || '[]');
+      const updated = [newRem, ...current];
+      localStorage.setItem('reminders', JSON.stringify(updated));
       e.target.reset();
-      const remRes = await RemindersApi.getAll();
-      setReminders((remRes.data || []).filter(r => !r.completed));
-    } catch (err) { addToast('Failed to add reminder', 'error'); }
+      setReminders(updated.filter(r => !r.completed));
+      addToast('Quick note saved locally', 'success');
+    } catch (err) { addToast('Failed to add note', 'error'); }
   };
 
   const today = new Date().toLocaleDateString('en-US', {

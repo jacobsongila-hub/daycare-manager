@@ -192,16 +192,16 @@ export default function TimeTracking() {
       {/* STATS OVERVIEW */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 15, marginBottom: 30 }}>
         <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #43a047', borderRadius: 16 }}>
-          <div style={{ color: '#43a047', fontSize: '2rem', fontWeight: 900 }}>{stats.todayHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
-          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>Today</div>
+          <div style={{ color: '#43a047', fontSize: '2rem', fontWeight: 900 }}>{stats.todayHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>{t('hoursShort') || 'h'}</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>{t('today') || 'Today'}</div>
         </div>
         <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #1976d2', borderRadius: 16 }}>
-          <div style={{ color: '#1976d2', fontSize: '2rem', fontWeight: 900 }}>{stats.weekHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
-          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>This Week</div>
+          <div style={{ color: '#1976d2', fontSize: '2rem', fontWeight: 900 }}>{stats.weekHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>{t('hoursShort') || 'h'}</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>{t('thisWeek') || 'This Week'}</div>
         </div>
         <div className="card" style={{ textAlign: 'center', padding: '20px', borderTop: '6px solid #8e24aa', borderRadius: 16 }}>
-          <div style={{ color: '#8e24aa', fontSize: '2rem', fontWeight: 900 }}>{stats.monthHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>h</small></div>
-          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>This Month</div>
+          <div style={{ color: '#8e24aa', fontSize: '2rem', fontWeight: 900 }}>{stats.monthHours.toFixed(1)} <small style={{ fontSize: '0.9rem' }}>{t('hoursShort') || 'h'}</small></div>
+          <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1, marginTop: 5, fontWeight: 700 }}>{t('thisMonth') || 'This Month'}</div>
         </div>
       </div>
 
@@ -224,12 +224,12 @@ export default function TimeTracking() {
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h3 style={{ margin: 0, color: '#444', fontSize: '1.4rem' }}>Time Log</h3>
+        <h3 style={{ margin: 0, color: '#444', fontSize: '1.4rem' }}>{t('timeLog') || 'Time Log'}</h3>
         <button 
           onClick={() => setShowManualModal(true)}
           style={{ background: 'white', border: '2px dashed #ccc', padding: '8px 20px', borderRadius: 12, cursor: 'pointer', fontWeight: 700, color: '#666' }}
         >
-          + Manual Entry
+          ➕ {t('manualEntry') || 'Manual Entry'}
         </button>
       </div>
 
@@ -239,7 +239,7 @@ export default function TimeTracking() {
             <div key={monthGroup.month} style={{ marginBottom: 20 }}>
               <div style={{ background: '#f5f5f5', padding: '10px 20px', borderRadius: 10, marginBottom: 15, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong style={{ fontSize: '1.1rem', color: '#555' }}>{monthGroup.month}</strong>
-                <span style={{ color: '#1565c0', fontWeight: 800 }}>Total: {monthGroup.totalHours.toFixed(1)} hrs</span>
+                <span style={{ color: '#1565c0', fontWeight: 800 }}>Total: {monthGroup.totalHours.toFixed(1)} {t('hoursShort') || 'hrs'}</span>
               </div>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -254,12 +254,12 @@ export default function TimeTracking() {
                          </div>
                          <div>
                            <div style={{ fontWeight: 600, color: '#444' }}>{formatTime(e.clockIn, lang)} → {formatTime(e.clockOut, lang)}</div>
-                           {!e.confirmed && <span style={{ fontSize: '0.75rem', background: '#fff3e0', color: '#e65100', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>PENDING APPROVAL</span>}
+                           {!e.confirmed && <span style={{ fontSize: '0.75rem', background: '#fff3e0', color: '#e65100', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>{t('pendingApproval') || 'PENDING APPROVAL'}</span>}
                          </div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1565c0' }}>{duration.toFixed(1)} <small style={{ fontSize: '0.8rem' }}>h</small></div>
-                        {!e.confirmed && <button onClick={() => handleConfirm(e._id)} style={{ background: '#eee', border: 'none', padding: '4px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', marginTop: 4 }}>APPROVE</button>}
+                        <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1565c0' }}>{duration.toFixed(1)} <small style={{ fontSize: '0.8rem' }}>{t('hoursShort') || 'h'}</small></div>
+                        {!e.confirmed && <button onClick={() => handleConfirm(e._id)} style={{ background: '#eee', border: 'none', padding: '4px 8px', borderRadius: 4, fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer', marginTop: 4 }}>{t('approve') || 'APPROVE'}</button>}
                       </div>
                     </div>
                   );
