@@ -1,6 +1,53 @@
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import PublicRoute from './components/PublicRoute';
+import { RoleRouter } from './components/RoleRouter';
 
-// ... (imports stay the same)
+// Layouts
+import AdminLayout from './layouts/AdminLayout';
+import StaffLayout from './layouts/StaffLayout';
+import ParentLayout from './layouts/ParentLayout';
+
+// Pages
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import AdminAttendance from './pages/admin/AdminAttendance';
+import FamilyManagement from './pages/admin/FamilyManagement';
+import ChildDetail from './pages/admin/ChildDetail';
+import EmergencyContacts from './pages/admin/EmergencyContacts';
+import AdminStaff from './pages/admin/AdminStaff';
+import TimeTracking from './pages/TimeTracking';
+import AdminStaffSchedule from './pages/admin/AdminStaffSchedule';
+import AdminCalendar from './pages/admin/AdminCalendar';
+import AdminSettings from './pages/admin/AdminSettings';
+import Announcements from './pages/admin/Announcements';
+import Reminders from './pages/admin/Reminders';
+import ShiftManager from './pages/admin/ShiftManager';
+import UserManagement from './pages/admin/UserManagement';
+import AdminReports from './pages/admin/AdminReports';
+import AdminDocs from './pages/admin/AdminDocs';
+import AdminPhotos from './pages/admin/AdminPhotos';
+import AdminNotes from './pages/admin/AdminNotes';
+
+// Staff Pages
+import StaffHome from './pages/staff/StaffHome';
+import StaffAttendance from './pages/staff/StaffAttendance';
+import StaffNotes from './pages/staff/StaffNotes';
+import StaffTimeTracking from './pages/staff/StaffTimeTracking';
+import StaffShifts from './pages/staff/StaffShifts';
+import StaffCalendar from './pages/staff/StaffCalendar';
+import StaffDocs from './pages/staff/StaffDocs';
+import StaffProfile from './pages/staff/StaffProfile';
+
+// Parent Pages
+import ParentHome from './pages/parent/ParentHome';
+import ParentCalendar from './pages/parent/ParentCalendar';
+import ParentDocs from './pages/parent/ParentDocs';
+import ParentProfile from './pages/parent/ParentProfile';
+import ParentPhotos from './pages/parent/ParentPhotos';
 
 export default function App() {
   return (
