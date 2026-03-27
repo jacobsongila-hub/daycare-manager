@@ -36,9 +36,71 @@ export default function EmergencyContacts() {
     <div className="page-container" style={{ paddingBottom: 80 }}>
       {/* Header */}
       <div style={{ background: 'linear-gradient(135deg, #d32f2f, #f44336)', padding: '30px', borderRadius: 20, color: 'white', marginBottom: 25, boxShadow: '0 10px 20px rgba(211, 47, 47, 0.2)' }}>
-        <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>🚨 Emergency Dashboard</h2>
-        <p style={{ margin: 0, opacity: 0.9 }}>Quick-dial access to parents and authorized contacts.</p>
+        <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>🚨 {t('emergencyDashboard') || 'Emergency Dashboard'}</h2>
+        <p style={{ margin: 0, opacity: 0.9 }}>{t('emergencyDashboardDesc') || 'Quick-dial access to parents and authorized contacts.'}</p>
       </div>
+
+      {/* DOWNLOADS SECTION */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 15, marginBottom: 25 }}>
+        <a href="https://daycare-hub-15.preview.emergentagent.com/Emergency_and_Pickup_Info.xlsx" target="_blank" rel="noopener noreferrer" className="btn" style={{ background: '#2e7d32', color: 'white', display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 280, justifyContent: 'center', padding: '15px' }}>
+          <span style={{ fontSize: '1.4rem' }}>📊</span> {t('downloadExcel') || 'Download Excel Info'}
+        </a>
+        <a href="https://daycare-hub-15.preview.emergentagent.com/Emergency_and_Pickup_Info.pdf" target="_blank" rel="noopener noreferrer" className="btn" style={{ background: '#c62828', color: 'white', display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 280, justifyContent: 'center', padding: '15px' }}>
+          <span style={{ fontSize: '1.4rem' }}>📄</span> {t('downloadPdf') || 'Download PDF Info'}
+        </a>
+      </div>
+
+      {/* QUICK SUMMARY TABLE (Collapsible) */}
+      <details style={{ background: 'white', borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: 25, overflow: 'hidden' }}>
+        <summary style={{ padding: '20px 25px', cursor: 'pointer', fontWeight: 800, color: '#444', fontSize: '1.1rem', background: '#f8f9fa', userSelect: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span>📋</span> {t('emergencySummaryList') || 'Summary Emergency List (All Children)'}
+        </summary>
+        <div style={{ padding: '0 20px 20px 20px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 15, fontSize: '0.9rem' }}>
+            <thead>
+              <tr style={{ background: '#eee', textAlign: 'left' }}>
+                <th style={{ padding: '12px 10px' }}>{t('child')}</th>
+                <th style={{ padding: '12px 10px' }}>{t('allergies')}</th>
+                <th style={{ padding: '12px 10px' }}>{t('mother')}</th>
+                <th style={{ padding: '12px 10px' }}>{t('phone')}</th>
+                <th style={{ padding: '12px 10px' }}>{t('father')}</th>
+                <th style={{ padding: '12px 10px' }}>{t('phone')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { name: 'Akiva Zonenshein', allergies: 'None', mother: 'Yehudit', mPhone: '050-527-2726', father: 'Tzvi', fPhone: '054-814-2023' },
+                { name: 'Arbel Kerel', allergies: 'None', mother: 'Ayala', mPhone: '058-429-2527', father: 'Maor', fPhone: '052-578-3732' },
+                { name: 'Aviv Friedman', allergies: 'None', mother: 'Sapir', mPhone: '050-344-6510', father: 'Daniel', fPhone: '054-220-0052' },
+                { name: 'Bnaya Axelrod', allergies: 'None', mother: 'Shalva-Esther', mPhone: '058-790-5985', father: 'Shlomo', fPhone: '050-766-9284' },
+                { name: 'Eliyah Buchnik', allergies: 'None', mother: 'Moriah', mPhone: '052-320-3070', father: 'Yair', fPhone: '053-337-1789' },
+                { name: 'Golan Messing', allergies: 'None', mother: 'Tal', mPhone: '058-483-8485', father: 'Moshe', fPhone: '050-670-1778' },
+                { name: 'Herut Levin', allergies: 'None', mother: 'Zimra', mPhone: '052-790-6414', father: 'Yishai', fPhone: '052-799-4105' },
+                { name: 'Hodaya Samin', allergies: 'None', mother: 'Yael', mPhone: '058-627-2066', father: 'Elchay', fPhone: '050-487-7783' },
+                { name: 'Libby Hasson', allergies: 'None', mother: 'Esther', mPhone: '(email)', father: 'Yahav', fPhone: '(email)' },
+                { name: 'Nave Samin', allergies: 'None', mother: 'Yael', mPhone: '058-627-2066', father: 'Elchay', fPhone: '050-487-7783' },
+                { name: 'Noam Marsiano', allergies: 'None', mother: 'Chenya', mPhone: '054-442-3218', father: 'Neriya', fPhone: '052-580-2274' },
+                { name: 'Ori Yechezkel', allergies: 'Dairy', mother: 'Shachak', mPhone: '054-565-5881', father: 'Roi', fPhone: '054-301-2254', alert: true },
+                { name: 'Roni Saban', allergies: 'None', mother: 'Shirel', mPhone: '054-207-1252', father: 'Tomer', fPhone: '050-592-2892' },
+                { name: 'Talia Saban', allergies: 'None', mother: 'Shirel', mPhone: '054-207-1252', father: 'Tomer', fPhone: '050-592-2892' },
+                { name: 'Ziv Chaim Swisa', allergies: 'None', mother: 'Hodaya', mPhone: '050-989-9906', father: 'Ori', fPhone: '052-749-1243' },
+              ].map((row, i) => (
+                <tr key={i} style={{ borderBottom: '1px solid #eee', background: row.alert ? '#fff5f5' : 'transparent', fontWeight: row.alert ? 800 : 400 }}>
+                  <td style={{ padding: '12px 10px' }}>{row.name}</td>
+                  <td style={{ padding: '12px 10px' }}>{row.allergies === 'None' ? '—' : row.allergies}</td>
+                  <td style={{ padding: '12px 10px' }}>{row.mother}</td>
+                  <td style={{ padding: '12px 10px' }}>{row.mPhone}</td>
+                  <td style={{ padding: '12px 10px' }}>{row.father}</td>
+                  <td style={{ padding: '12px 10px' }}>{row.fPhone}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div style={{ marginTop: 15, background: '#e3f2fd', padding: '12px 15px', borderRadius: 8, color: '#1565c0', fontSize: '0.85rem' }}>
+             🚙 <strong>Authorized Pickup Note:</strong> {t('authorizedPickupNote') || 'All parents (Mother & Father) are automatically authorized. No additional authorized persons have been added yet.'}
+          </div>
+        </div>
+      </details>
 
       <div style={{ background: 'white', padding: '15px 20px', borderRadius: 12, boxShadow: '0 4px 10px rgba(0,0,0,0.05)', marginBottom: 25, display: 'flex', alignItems: 'center', gap: 15 }}>
         <span style={{ fontSize: '1.2rem' }}>🔍</span>
@@ -65,8 +127,13 @@ export default function EmergencyContacts() {
 
             return (
               <div key={child._id} className="card" style={{ padding: 0, overflow: 'hidden', borderTop: '6px solid #f44336', borderRadius: 16 }}>
-                <div style={{ background: 'var(--surface-2)', padding: '15px 20px', borderBottom: '1px solid #eee' }}>
+                <div style={{ background: 'var(--surface-2)', padding: '15px 20px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ margin: 0, fontSize: '1.4rem' }}>👶 {child.name}</h3>
+                  {child.allergies && (
+                    <div style={{ background: '#fed7d7', color: '#c53030', padding: '4px 10px', borderRadius: 20, fontSize: '0.75rem', fontWeight: 900, border: '1px solid #fecaca' }}>
+                      ⚠️ {t('allergies') || 'Allergy'}: {child.allergies}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ padding: '20px' }}>

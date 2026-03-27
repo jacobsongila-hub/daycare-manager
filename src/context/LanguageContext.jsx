@@ -198,6 +198,13 @@ const translations = {
     pendingApproval: 'PENDING APPROVAL',
     approve: 'APPROVE',
     hoursShort: 'hrs',
+    emergencyDashboard: 'Emergency Dashboard',
+    emergencyDashboardDesc: 'Quick-dial access to parents and authorized contacts.',
+    downloadExcel: 'Download Excel Info',
+    downloadPdf: 'Download PDF Info',
+    emergencySummaryList: 'Summary Emergency List (All Children)',
+    authorizedPickupNote: 'All parents (Mother & Father) are automatically authorized. No additional authorized persons have been added yet.',
+    child: 'Child',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -394,6 +401,13 @@ const translations = {
     pendingApproval: 'ממתין לאישור',
     approve: 'אשר',
     hoursShort: 'שעות',
+    emergencyDashboard: 'לוח חירום',
+    emergencyDashboardDesc: 'גישה מהירה לחיוג להורים ולאנשי קשר מורשים.',
+    downloadExcel: 'הורד מידע ב-Excel',
+    downloadPdf: 'הורד מידע ב-PDF',
+    emergencySummaryList: 'רשימת חירום מרוכזת (כל הילדים)',
+    authorizedPickupNote: 'כל ההורים (אמא ואבא) מורשים אוטומטית. טרם נוספו מורשי איסוף נוספים.',
+    child: 'ילד',
   }
 };
 
