@@ -1,33 +1,142 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { PhotosApi, ChildrenApi } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
 
 export default function AdminPhotos() {
+  const [photos, setPhotos] = useState([]);
+  const [children, setChildren] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const { addToast } = useNotification();
   const { t } = useLanguage();
-  const [photos, setPhotos] = useState([
-    { id: 1, url: 'https://images.unsplash.com/photo-1540479859555-17a9aaae1dd8?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', date: '2026-03-20', title: 'Playtime' },
-    { id: 2, url: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80', date: '2026-03-21', title: 'Art Class' },
-  ]);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [pRes, cRes] = await Promise.all([
+        PhotosApi.getAll().catch(() => ({ data: [] })),
+        ChildrenApi.getAll().catch(() => ({ data: [] }))
+      ]);
+      setPhotos(pRes.data || []);
+      setChildren(cRes.data || []);
+    } catch (err) {
+      addToast(t('errorLoadingPhotos') || 'Failed to load photos', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleUpload = async (e) => {
+    e.preventDefault();
+    setUploading(true);
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    const selectedChildIds = Array.from(e.target.childIds.selectedOptions).map(o => o.value);
+    data.childIds = selectedChildIds;
+    data.date = new Date().toISOString().split('T')[0];
+    try {
+      await PhotosApi.create(data);
+      addToast(t('photoUploaded') || 'Photo uploaded successfuly', 'success');
+      setShowUploadModal(false);
+      loadData();
+    } catch (err) { 
+      addToast(t('uploadFailed') || 'Upload failed', 'error'); 
+    } finally { 
+      setUploading(false); 
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm(t('confirmDelete') || 'Delete this photo?')) return;
+    try {
+      await PhotosApi.delete(id);
+      addToast(t('photoDeleted') || 'Photo deleted', 'success');
+      setPhotos(prev => prev.filter(p => p._id !== id));
+    } catch (err) { 
+      addToast(t('deleteFailed') || 'Delete failed', 'error'); 
+    }
+  };
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <h2>📸 {t('photos') || 'Upload Photos'}</h2>
-        <button className="btn btn-primary">➕ Upload New</button>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 25 }}>
+        <div>
+          <h2 style={{ margin: 0 }}>📸 {t('photos')}</h2>
+          <p style={{ margin: 0, color: '#666' }}>Share moments and tag children for parents.</p>
+        </div>
+        <button className="btn btn-primary" onClick={() => setShowUploadModal(true)}>
+          ➕ {t('uploadPhoto')}
+        </button>
       </div>
-      <p style={{ color: '#555', marginBottom: 20 }}>Share photos of activities with parents. They will see these in their portal.</p>
       
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 15 }}>
-        {photos.map(p => (
-          <div key={p.id} style={{ borderRadius: 12, overflow: 'hidden', background: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,0.1)' }}>
-            <img src={p.url} alt={p.title} style={{ width: '100%', height: 120, objectFit: 'cover' }} />
-            <div style={{ padding: 10 }}>
-              <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{p.title}</div>
-              <div style={{ fontSize: '0.75rem', color: '#888' }}>{p.date}</div>
-              <button style={{ background: 'none', border: 'none', color: '#f44336', cursor: 'pointer', padding: '5px 0 0 0', fontSize: '0.8rem' }}>Delete</button>
+      {/* Photo Grid */}
+      {loading ? <div className="spinner"></div> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+          {photos.length === 0 ? <p className="empty-state">{t('noPhotos')}</p> : photos.map(p => (
+            <div key={p._id} className="photo-card" style={{ background: 'white', borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', position: 'relative' }}>
+              <img src={p.url} alt={p.title} style={{ width: '100%', height: 180, objectFit: 'cover' }} />
+              <div style={{ padding: 15 }}>
+                <h4 style={{ margin: '0 0 5px 0' }}>{p.title}</h4>
+                <div style={{ fontSize: '0.8rem', color: '#888', marginBottom: 10 }}>📅 {p.date}</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                  {p.childIds?.map(cid => {
+                    const child = children.find(c => c._id === cid);
+                    return child ? (
+                      <span key={cid} style={{ fontSize: '0.7rem', background: '#e3f2fd', color: '#1565c0', padding: '2px 8px', borderRadius: 10 }}>
+                        👶 {child.name}
+                      </span>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+              <button 
+                onClick={() => handleDelete(p._id)}
+                style={{ position: 'absolute', top: 10, right: 10, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '50%', width: 30, height: 30, cursor: 'pointer', color: '#f44336' }}
+              >
+                🗑️
+              </button>
             </div>
+          ))}
+        </div>
+      )}
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 500 }}>
+            <h3>{t('uploadPhoto')}</h3>
+            <form onSubmit={handleUpload} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: 5 }}>{t('photoTitle') || 'Title'}</label>
+                <input name="title" required className="input" autoFocus />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: 5 }}>URL</label>
+                <input name="url" required className="input" />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: 8, fontSize: '0.9rem', fontWeight: 'bold' }}>{t('tagChildren')}:</label>
+                <select name="childIds" multiple className="input" style={{ height: 150 }}>
+                  {children.map(c => (
+                    <option key={c._id} value={c._id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setShowUploadModal(false)}>{t('cancel')}</button>
+                <button type="submit" className="btn btn-primary" disabled={uploading}>
+                  {uploading ? '...' : t('save')}
+                </button>
+              </div>
+            </form>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

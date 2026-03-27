@@ -1,4 +1,7 @@
+import React, { useState, useEffect } from 'react';
+import { FamiliesApi, ChildrenApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
+import { calculateAge } from '../../utils/formatters';
 
 export default function FamilyManagement() {
   const [families, setFamilies] = useState([]);
@@ -99,7 +102,7 @@ export default function FamilyManagement() {
       addToast('Error deleting child', 'error'); 
     }
   };
- streams: 
+ 
 
   if (loading) return <div>Loading families...</div>;
 

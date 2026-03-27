@@ -34,6 +34,15 @@ export default function TimeTracking() {
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState(false);
   const { addToast } = useNotification();
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [manualForm, setManualForm] = useState({ staffId: '', date: new Date().toISOString().split('T')[0], start: '', end: '', preset: 'custom' });
+
+  const SHIFT_PRESETS = {
+    full: { label: 'Full Day (07:45-17:00)', start: '07:45', end: '17:00' },
+    morning: { label: 'Half Day - Morning (07:34-13:00)', start: '07:34', end: '13:00' },
+    afternoon: { label: 'Half Day - Afternoon (12:30-17:00)', start: '12:30', end: '17:00' },
+    custom: { label: 'Custom', start: '', end: '' }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,14 +95,31 @@ export default function TimeTracking() {
     }
   };
 
-  const handleConfirm = async (entryId) => {
+  const handleManualEntry = async (e) => {
+    e.preventDefault();
+    setActioning(true);
     try {
-      await TimeEntriesApi.update(entryId, { confirmed: true });
-      addToast('Timesheet confirmed', 'success');
+      const start = `${manualForm.date}T${manualForm.start}:00.000Z`;
+      const end = `${manualForm.date}T${manualForm.end}:00.000Z`;
+      await TimeEntriesApi.create({ 
+        staffId: manualForm.staffId || selectedStaff, 
+        clockIn: start, 
+        clockOut: end, 
+        confirmed: true 
+      });
+      addToast('Shift recorded successfully', 'success');
+      setShowManualModal(false);
       load();
     } catch (err) {
-      addToast('Confirmation failed', 'error');
+      addToast('Failed to record shift', 'error');
+    } finally {
+      setActioning(false);
     }
+  };
+
+  const onPresetChange = (preset) => {
+    const p = SHIFT_PRESETS[preset];
+    setManualForm(prev => ({ ...prev, preset, start: p.start, end: p.end }));
   };
 
   // Stats for selected staff
@@ -163,6 +189,16 @@ export default function TimeTracking() {
         </button>
       </div>
 
+      <div style={{ padding: '0 20px', marginBottom: 30 }}>
+        <button 
+          onClick={() => { setManualForm({ ...manualForm, staffId: selectedStaff }); setShowManualModal(true); }}
+          className="btn" 
+          style={{ width: '100%', padding: '12px', borderRadius: 12, background: '#eee', color: '#333', fontWeight: 'bold', border: '1px dashed #999' }}
+        >
+          ➕ Add Manual / Preset Shift
+        </button>
+      </div>
+
       {/* RECENT ENTRIES */}
       <div style={{ padding: '0 20px' }}>
         <h3 style={{ fontSize: '1.1rem', color: '#555', marginBottom: 15 }}>Recent Timesheets</h3>
@@ -214,6 +250,53 @@ export default function TimeTracking() {
           </div>
         )}
       </div>
+      {/* MANUAL ENTRY MODAL */}
+      {showManualModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 450 }}>
+            <h3>Record Shift</h3>
+            <form onSubmit={handleManualEntry} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+              <div>
+                <label className="form-label">Staff Member</label>
+                <select className="input" value={manualForm.staffId} onChange={e => setManualForm({...manualForm, staffId: e.target.value})} required>
+                  <option value="">Select Staff...</option>
+                  {staff.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                </select>
+              </div>
+              
+              <div>
+                <label className="form-label">Date</label>
+                <input type="date" className="input" value={manualForm.date} onChange={e => setManualForm({...manualForm, date: e.target.value})} required />
+              </div>
+
+              <div>
+                <label className="form-label">Shift Type (Presets)</label>
+                <select className="input" value={manualForm.preset} onChange={e => onPresetChange(e.target.value)}>
+                  {Object.entries(SHIFT_PRESETS).map(([key, p]) => (
+                    <option key={key} value={key}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">Start Time</label>
+                  <input type="time" className="input" value={manualForm.start} onChange={e => setManualForm({...manualForm, start: e.target.value})} required />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">End Time</label>
+                  <input type="time" className="input" value={manualForm.end} onChange={e => setManualForm({...manualForm, end: e.target.value})} required />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setShowManualModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={actioning}>Save Shift</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

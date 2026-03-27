@@ -2,24 +2,24 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi } from '../services/api';
+import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi, TimeEntriesApi } from '../services/api';
 
 const actionCards = [
-  { to: '/admin/attendance', icon: '📝', label: 'Mark Attendance', color: '#4CAF50' },
-  { to: '/admin/photos', icon: '📸', label: 'Upload Photos', color: '#E91E63' },
-  { to: '/admin/notes', icon: '📋', label: 'Daily Notes', color: '#FF9800' },
-  { to: '/admin/families', icon: '👨‍👩‍👧', label: 'Families', color: '#9C27B0' },
-  { to: '/admin/docs', icon: '📁', label: 'Documents', color: '#607D8B' },
-  { to: '/admin/reports', icon: '📥', label: 'Generate Reports', color: '#F44336' },
-  { to: '/admin/shift-requests', icon: '📋', label: 'Shift Requests', color: '#2196F3' },
-  { to: '/admin/staff-schedule', icon: '💼', label: 'Staff Schedule', color: '#3F51B5' },
+  { to: '/admin/attendance', icon: '📝', label: 'attendance', color: '#4CAF50' },
+  { to: '/admin/photos', icon: '📸', label: 'photos', color: '#E91E63' },
+  { to: '/admin/notes', icon: '📋', label: 'notes', color: '#FF9800' },
+  { to: '/admin/families', icon: '👨‍👩‍👧', label: 'families', color: '#9C27B0' },
+  { to: '/admin/docs', icon: '📁', label: 'mydocs', color: '#607D8B' },
+  { to: '/admin/reports', icon: '📥', label: 'reports', color: '#F44336' },
+  { to: '/admin/shift-requests', icon: '📋', label: 'shiftrequests', color: '#2196F3' },
+  { to: '/admin/staff-schedule', icon: '💼', label: 'staffschedule', color: '#3F51B5' },
 ];
 
-function getDayGreeting() {
+function getDayGreeting(t) {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Good Morning';
-  if (hour < 17) return 'Good Afternoon';
-  return 'Good Evening';
+  if (hour < 12) return t('goodMorning') || 'Good Morning';
+  if (hour < 17) return t('goodAfternoon') || 'Good Afternoon';
+  return t('goodEvening') || 'Good Evening';
 }
 
 export default function Dashboard() {
@@ -35,28 +35,30 @@ export default function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [childrenRes, attRes, staffRes, shiftRes, annRes] = await Promise.all([
-          ChildrenApi.getAll(),
-          AttendanceApi.getAll(),
-          StaffApi.getAll(),
-          ShiftRequestsApi.getAll(),
-          AnnouncementsApi.getAll()
+        const [childrenRes, attRes, staffRes, shiftRes, annRes, timeRes] = await Promise.all([
+          ChildrenApi.getAll().catch(() => ({ data: [] })),
+          AttendanceApi.getAll().catch(() => ({ data: [] })),
+          StaffApi.getAll().catch(() => ({ data: [] })),
+          ShiftRequestsApi.getAll().catch(() => ({ data: [] })),
+          AnnouncementsApi.getAll().catch(() => ({ data: [] })),
+          TimeEntriesApi.getAll().catch(() => ({ data: [] }))
         ]);
 
         const children = childrenRes.data || [];
         const attendance = attRes.data || [];
-        const staffList = staffRes.data || [];
+        const entries = timeRes.data || [];
         const shifts = shiftRes.data || [];
         const anns = annRes.data || [];
 
         // Calculate today's stats
-        const todayObj = new Date();
-        const todayStr = todayObj.toISOString().split('T')[0];
+        const todayStr = new Date().toISOString().split('T')[0];
         const todaysAtt = attendance.filter(a => a.date === todayStr);
 
         const present = todaysAtt.filter(a => a.status === 'Present').length;
         const absent = todaysAtt.filter(a => a.status === 'Absent').length;
-        const staffIn = staffList.length; // Simplified staff in count
+        
+        // Staff In: anyone who has a clockIn but no clockOut
+        const staffIn = entries.filter(e => !e.clockOut).length;
         
         setStats({ present, absent, total: children.length, staffIn });
         setAnnouncements(anns.slice(0, 3));
@@ -97,7 +99,7 @@ export default function Dashboard() {
       <div style={{ padding: '20px', background: 'linear-gradient(135deg, #1565c0, #2196f3)', color:'white', borderRadius: '0 0 20px 20px', marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '1.2rem', opacity: 0.9 }}>{getDayGreeting()},</div>
+            <div style={{ fontSize: '1.2rem', opacity: 0.9 }}>{getDayGreeting(t)},</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{user?.name || 'Admin'}</div>
             <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: 5 }}>{today}</div>
           </div>
@@ -128,7 +130,7 @@ export default function Dashboard() {
             
             {birthdays.length > 0 && (
               <div style={{ marginBottom: announcements.length > 0 ? 15 : 0 }}>
-                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>🎂 Upcoming Birthdays</h4>
+                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>🎂 {t('upcomingBirthdays')}</h4>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   {birthdays.slice(0, 3).map(b => (
                     <div key={b._id} style={{ background: 'rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: 20, fontSize: '0.9rem', fontWeight: 600 }}>
@@ -142,14 +144,14 @@ export default function Dashboard() {
 
             {announcements.length > 0 && (
               <div>
-                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>📢 Announcement</h4>
+                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>📢 {t('announcements')}</h4>
                 <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.3 }}>{announcements[0].title}</p>
                 <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', opacity: 0.9 }}>{announcements[0].message.substring(0, 80)}...</p>
                 <button 
                   onClick={() => navigate('/admin/announcements')}
                   style={{ background: 'white', color: '#ff5722', border: 'none', padding: '6px 15px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', marginTop: 12 }}
                 >
-                  View All
+                  {t('viewAll')}
                 </button>
               </div>
             )}
@@ -161,13 +163,13 @@ export default function Dashboard() {
       <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {pendingShifts > 0 && (
           <div style={{ background: '#fff3e0', borderLeft: '4px solid #ff9800', padding: 15, borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>📋 <strong>{pendingShifts} Pending Shift Requests</strong></span>
-            <button onClick={() => navigate('/admin/shift-requests')} style={{ background: '#ff9800', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer' }}>Review</button>
+            <span>📋 <strong>{pendingShifts} {t('pendingShiftsCount')}</strong></span>
+            <button onClick={() => navigate('/admin/shift-requests')} style={{ background: '#ff9800', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer' }}>{t('review')}</button>
           </div>
         )}
         {attendanceProgress < 100 && (
           <div style={{ background: '#ffebee', borderLeft: '4px solid #f44336', padding: 15, borderRadius: 8 }}>
-            ⚠️ <strong>Unmarked Children Alert:</strong> {stats.total - (stats.present + stats.absent)} children still need attendance marked.
+            ⚠️ <strong>{t('unmarkedAlert')}:</strong> {stats.total - (stats.present + stats.absent)} {t('childrenNeedAttendance') || 'children unmarked'}
           </div>
         )}
       </div>
@@ -178,26 +180,26 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
           <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#4CAF50' }}>{stats.present}</div>
-            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>👶 Children Present</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>👶 {t('childrenPresent')}</div>
           </div>
           <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#f44336' }}>{stats.absent}</div>
-            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>❌ Children Absent</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>❌ {t('childrenAbsent')}</div>
           </div>
           <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#2196F3' }}>{stats.staffIn}</div>
-            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>👩‍🏫 Staff In</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>👩‍🏫 {t('staffIn')}</div>
           </div>
           <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#9C27B0' }}>{ratio}:1</div>
-            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>📊 Staff:Child Ratio</div>
+            <div style={{ fontSize: '0.85rem', color: '#666', fontWeight: 600 }}>📊 {t('staffChildRatio')}</div>
           </div>
         </div>
 
         {/* PROGRESS BAR */}
         <div style={{ marginTop: 20, background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>Attendance Progress</span>
+            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#444' }}>{t('attendanceProgress')}</span>
             <span style={{ fontWeight: 700, color: '#2196F3' }}>{attendanceProgress}%</span>
           </div>
           <div style={{ width: '100%', background: '#eee', height: 10, borderRadius: 5, overflow: 'hidden' }}>
@@ -215,7 +217,7 @@ export default function Dashboard() {
               <div style={{ width: 60, height: 60, borderRadius: 16, background: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: 'white', boxShadow: '0 4px 8px rgba(0,0,0,0.1)' }}>
                 {card.icon}
               </div>
-              <span style={{ fontSize: '0.75rem', textAlign: 'center', color: '#444', fontWeight: 600, lineHeight: 1.2 }}>{card.label}</span>
+              <span style={{ fontSize: '0.75rem', textAlign: 'center', color: '#444', fontWeight: 600, lineHeight: 1.2 }}>{t(card.label) || card.label}</span>
             </Link>
           ))}
         </div>

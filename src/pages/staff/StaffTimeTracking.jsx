@@ -34,6 +34,15 @@ export default function StaffTimeTracking() {
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState(false);
   const { addToast } = useNotification();
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestForm, setRequestForm] = useState({ date: new Date().toISOString().split('T')[0], start: '', end: '', preset: 'custom' });
+
+  const SHIFT_PRESETS = {
+    full: { label: 'Full Day (07:45-17:00)', start: '07:45', end: '17:00' },
+    morning: { label: 'Half Day - Morning (07:34-13:00)', start: '07:34', end: '13:00' },
+    afternoon: { label: 'Half Day - Afternoon (12:30-17:00)', start: '12:30', end: '17:00' },
+    custom: { label: 'Custom', start: '', end: '' }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -87,6 +96,29 @@ export default function StaffTimeTracking() {
     } catch (err) {
       addToast(err.response?.data?.message || 'Failed to clock out', 'error');
     } finally { setActioning(false); }
+  };
+
+  const handleRequestShift = async (e) => {
+    e.preventDefault();
+    setActioning(true);
+    try {
+      await ShiftRequestsApi.create({
+        staffId: myStaffId,
+        date: requestForm.date,
+        start: requestForm.start,
+        end: requestForm.end,
+        status: 'Pending'
+      });
+      addToast('Shift request submitted', 'success');
+      setShowRequestModal(false);
+    } catch (err) {
+      addToast('Failed to submit request', 'error');
+    } finally { setActioning(false); }
+  };
+
+  const onPresetChange = (preset) => {
+    const p = SHIFT_PRESETS[preset];
+    setRequestForm(prev => ({ ...prev, preset, start: p.start, end: p.end }));
   };
 
   // Stats
@@ -143,6 +175,16 @@ export default function StaffTimeTracking() {
         </button>
       </div>
 
+      <div style={{ padding: '0 20px', marginBottom: 30 }}>
+        <button 
+          onClick={() => setShowRequestModal(true)}
+          className="btn" 
+          style={{ width: '100%', padding: '12px', borderRadius: 12, background: '#eee', color: '#2e7d32', fontWeight: 'bold', border: '1px dashed #2e7d32' }}
+        >
+          📅 Request Planned Shift
+        </button>
+      </div>
+
       {/* MY ENTRIES */}
       <div style={{ padding: '0 20px' }}>
         <h3 style={{ fontSize: '1.1rem', color: '#555', marginBottom: 15 }}>My Recent Entries</h3>
@@ -182,6 +224,45 @@ export default function StaffTimeTracking() {
           </div>
         )}
       </div>
+      {/* REQUEST MODAL */}
+      {showRequestModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 450 }}>
+            <h3>Request Shift</h3>
+            <form onSubmit={handleRequestShift} style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
+              <div>
+                <label className="form-label">Target Date</label>
+                <input type="date" className="input" value={requestForm.date} onChange={e => setRequestForm({...requestForm, date: e.target.value})} required />
+              </div>
+
+              <div>
+                <label className="form-label">Shift Preset</label>
+                <select className="input" value={requestForm.preset} onChange={e => onPresetChange(e.target.value)}>
+                  {Object.entries(SHIFT_PRESETS).map(([key, p]) => (
+                    <option key={key} value={key}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">Start Time</label>
+                  <input type="time" className="input" value={requestForm.start} onChange={e => setRequestForm({...requestForm, start: e.target.value})} required />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label className="form-label">End Time</label>
+                  <input type="time" className="input" value={requestForm.end} onChange={e => setRequestForm({...requestForm, end: e.target.value})} required />
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn" onClick={() => setShowRequestModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={actioning}>Submit Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
