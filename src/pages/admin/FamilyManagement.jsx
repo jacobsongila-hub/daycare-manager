@@ -2,14 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { FamiliesApi, ChildrenApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { calculateAge } from '../../utils/formatters';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function FamilyManagement() {
   const [families, setFamilies] = useState([]);
-  const [childrenDict, setChildrenDict] = useState({}); // familyId -> array of children
+  const [childrenDict, setChildrenDict] = useState({});
   const [loading, setLoading] = useState(true);
   const { addToast } = useNotification();
+  const { t } = useLanguage();
 
-  // Modals
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [editFamily, setEditFamily] = useState(null);
   const [showChildModal, setShowChildModal] = useState(false);

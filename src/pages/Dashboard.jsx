@@ -65,6 +65,7 @@ export default function Dashboard() {
         setPendingShifts(shifts.filter(s => s.status === 'Pending').length);
 
         // Find birthdays in the next 14 days
+        const todayObj = new Date();
         const upcomingBirthdays = children.filter(child => {
           if (!child.dob) return false;
           const dob = new Date(child.dob);
