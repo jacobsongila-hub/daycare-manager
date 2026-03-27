@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ChildrenApi, AttendanceApi } from '../../services/api';
+import { ChildrenApi, AttendanceApi, markAttendance } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function AdminAttendance() {
   const [children, setChildren] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   const loadData = async () => {
     setLoading(true);
@@ -24,6 +26,7 @@ export default function AdminAttendance() {
 
     } catch (err) {
       console.error('Error loading attendance', err);
+      addToast('Failed to load attendance data', 'error');
     } finally {
       setLoading(false);
     }
@@ -35,33 +38,37 @@ export default function AdminAttendance() {
     try {
       const payload = { childId, date, status: newStatus };
       if (newStatus === 'Present' && attendance[childId]?.status !== 'Present') {
-        payload.checkIn = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        payload.checkIn = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
       } else if (newStatus === 'Absent') {
         payload.checkIn = '';
         payload.checkOut = '';
       }
       
-      // We use the mark route we created in the backend which does upsert
-      const res = await AttendanceApi.create(payload); 
-      // Wait, mark is not natively in create() factory. I added markAttendance to api.js. Let's import it correctly or use a custom call.
-      // Ah, I need to import markAttendance.
+      const res = await markAttendance(payload); 
       setAttendance(prev => ({ ...prev, [childId]: res.data }));
-      loadData(); // refresh fully
-    } catch(err) { alert('Error updating status'); }
+      addToast(`Status updated: ${newStatus}`, 'success');
+      // No need to reload all data if we update local state correctly
+    } catch(err) { 
+      console.error(err);
+      addToast('Error updating status', 'error'); 
+    }
   };
 
   const markAll = async (status) => {
-    if(!window.confirm(`Mark all as ${status}?`)) return;
     try {
+      setLoading(true);
       for(let child of children) {
         if(attendance[child._id]?.status !== status) {
-          await updateStatus(child._id, status);
+          await markAttendance({ childId: child._id, date, status });
         }
       }
+      addToast(`All children marked as ${status}`, 'success');
+      loadData();
     } catch(err) {
-      // ignore individual failures
+      addToast('Error marking multiple children', 'error');
+    } finally {
+      setLoading(false);
     }
-    loadData();
   };
 
   return (

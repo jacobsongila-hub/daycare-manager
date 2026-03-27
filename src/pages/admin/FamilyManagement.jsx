@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { FamiliesApi, ChildrenApi } from '../../services/api';
-import { calculateAge } from '../../utils/formatters';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function FamilyManagement() {
   const [families, setFamilies] = useState([]);
   const [childrenDict, setChildrenDict] = useState({}); // familyId -> array of children
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   // Modals
   const [showFamilyModal, setShowFamilyModal] = useState(false);
@@ -31,6 +30,7 @@ export default function FamilyManagement() {
       setChildrenDict(dict);
     } catch (err) {
       console.error('Error loading families/children', err);
+      addToast('Failed to load family data', 'error');
     } finally {
       setLoading(false);
     }
@@ -43,19 +43,29 @@ export default function FamilyManagement() {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
     try {
-      if (editFamily) await FamiliesApi.update(editFamily._id, data);
-      else await FamiliesApi.create(data);
+      if (editFamily) {
+        await FamiliesApi.update(editFamily._id, data);
+        addToast('Family updated successfully', 'success');
+      } else {
+        await FamiliesApi.create(data);
+        addToast('New family added', 'success');
+      }
       setShowFamilyModal(false);
       loadData();
-    } catch (err) { alert('Error saving family'); }
+    } catch (err) { 
+      addToast('Error saving family profile', 'error'); 
+    }
   };
 
   const handleDeleteFamily = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this family?')) return;
+    if (!window.confirm('Are you sure you want to delete this family and all linked records?')) return;
     try {
       await FamiliesApi.delete(id);
+      addToast('Family deleted', 'success');
       loadData();
-    } catch (err) { alert('Error deleting family'); }
+    } catch (err) { 
+      addToast('Error deleting family', 'error'); 
+    }
   };
 
   const handleSaveChild = async (e) => {
@@ -64,26 +74,32 @@ export default function FamilyManagement() {
     const data = Object.fromEntries(formData);
     data.familyId = activeFamilyId;
     
-    // Convert comma string to array for allergies
-    if (typeof data.allergies === 'string') {
-      data.allergies = data.allergies; // Keeping as string per simplified schema for now
-    }
-
     try {
-      if (editChild) await ChildrenApi.update(editChild._id, data);
-      else await ChildrenApi.create(data);
+      if (editChild) {
+        await ChildrenApi.update(editChild._id, data);
+        addToast('Child profile updated', 'success');
+      } else {
+        await ChildrenApi.create(data);
+        addToast('New child added to family', 'success');
+      }
       setShowChildModal(false);
       loadData();
-    } catch (err) { alert('Error saving child'); }
+    } catch (err) { 
+      addToast('Error saving child information', 'error'); 
+    }
   };
 
   const handleDeleteChild = async (id) => {
     if (!window.confirm('Delete this child?')) return;
     try {
       await ChildrenApi.delete(id);
+      addToast('Child profile removed', 'success');
       loadData();
-    } catch (err) { alert('Error deleting child'); }
+    } catch (err) { 
+      addToast('Error deleting child', 'error'); 
+    }
   };
+ streams: 
 
   if (loading) return <div>Loading families...</div>;
 
@@ -104,9 +120,12 @@ export default function FamilyManagement() {
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #eee', paddingBottom: 15, marginBottom: 15 }}>
               <div>
                 <h3 style={{ margin: '0 0 5px 0', color: '#1565c0' }}>{fam.familyName} Family</h3>
-                <div style={{ fontSize: '0.9rem', color: '#666', display: 'flex', gap: 15 }}>
-                  {fam.motherName && <span>👩 {fam.motherName} ({fam.motherPhone})</span>}
-                  {fam.fatherName && <span>👨 {fam.fatherName} ({fam.fatherPhone})</span>}
+                <div style={{ fontSize: '0.9rem', color: '#666', display: 'flex', flexWrap: 'wrap', gap: '10px 20px' }}>
+                  {fam.motherName && <span>👩 <strong>Mother:</strong> {fam.motherName} ({fam.motherPhone})</span>}
+                  {fam.fatherName && <span>👨 <strong>Father:</strong> {fam.fatherName} ({fam.fatherPhone})</span>}
+                  {(fam.emergencyContactName || fam.emergencyContactPhone) && (
+                    <span style={{ color: '#d32f2f' }}>🚨 <strong>Emergency:</strong> {fam.emergencyContactName} ({fam.emergencyContactPhone})</span>
+                  )}
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10 }}>
@@ -162,6 +181,10 @@ export default function FamilyManagement() {
               <div style={{ display: 'flex', gap: 10 }}>
                 <input name="fatherName" defaultValue={editFamily?.fatherName} placeholder="Father's Name" className="input" style={{ flex: 1 }} />
                 <input name="fatherPhone" defaultValue={editFamily?.fatherPhone} placeholder="Father's Phone" className="input" style={{ flex: 1 }} />
+              </div>
+              <div style={{ display: 'flex', gap: 10, borderTop: '1px solid #eee', paddingTop: 10 }}>
+                <input name="emergencyContactName" defaultValue={editFamily?.emergencyContactName} placeholder="Emergency Contact Name" className="input" style={{ flex: 1 }} />
+                <input name="emergencyContactPhone" defaultValue={editFamily?.emergencyContactPhone} placeholder="Emergency Contact Phone" className="input" style={{ flex: 1 }} />
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowFamilyModal(false)}>Cancel</button>

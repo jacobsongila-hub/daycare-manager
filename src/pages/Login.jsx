@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -25,7 +26,7 @@ export default function Login() {
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
         setError('Cannot reach the server. Check your network connection.');
       } else if (err.response?.status === 401 || err.response?.status === 400) {
-        setError('Invalid email or password. Please try again.');
+        setError('Invalid identifier or password. Please try again.');
       } else {
         setError(err.response?.data?.message || 'Login failed. Please try again.');
       }
@@ -51,32 +52,41 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Email</label>
+            <label className="form-label" htmlFor="email">Email or Username</label>
             <input
               id="email"
-              type="email"
+              type="text"
               className="form-input"
-              placeholder="you@example.com"
+              placeholder="Enter email or username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              inputMode="email"
+              autoComplete="username"
               required
             />
           </div>
 
           <div className="form-group">
             <label className="form-label" htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              className="form-input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                className="form-input"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? '👁️' : '👁️‍🗨️'}
+              </button>
+            </div>
           </div>
 
           <button

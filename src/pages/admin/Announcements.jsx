@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { AnnouncementsApi } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function Announcements() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   const loadData = async () => {
     setLoading(true);
@@ -12,6 +12,7 @@ export default function Announcements() {
       setAnnouncements(res.data || []);
     } catch (err) {
       console.error('Error loading announcements', err);
+      addToast('Failed to load announcements', 'error');
     } finally {
       setLoading(false);
     }
@@ -27,17 +28,23 @@ export default function Announcements() {
     
     try {
       await AnnouncementsApi.create(data);
+      addToast('Announcement posted successfully', 'success');
       e.target.reset();
       loadData();
-    } catch (err) { alert('Error creating announcement'); }
+    } catch (err) { 
+      addToast('Error creating announcement', 'error'); 
+    }
   };
 
   const handleDelete = async (id) => {
     if(!window.confirm('Delete this announcement?')) return;
     try {
       await AnnouncementsApi.delete(id);
+      addToast('Announcement deleted', 'success');
       loadData();
-    } catch (err) { alert('Error deleting'); }
+    } catch (err) { 
+      addToast('Error deleting announcement', 'error'); 
+    }
   };
 
   const getTypeIcon = (type) => {

@@ -1,0 +1,136 @@
+﻿
+> daycare-manager@1.0.0 build
+> vite build
+
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 124 modules transformed.
+node.exe : 
+[31mx[39m Build 
+failed in 451ms
+At line:1 char:1
++ & "C:\Program Files\
+nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ([31mx[39   
+ m Build failed in    
+ 451ms:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+[31merror during 
+build:
+[31msrc/pages/staff/S
+taffProfile.jsx 
+(2:18): 
+"useAuthActions" is 
+not exported by "src/c
+ontext/AuthContext.jsx
+", imported by "src/pa
+ges/staff/StaffProfile
+.jsx".[31m
+file: [36mC:/Users/Sh
+alev/.gemini/antigravi
+ty/scratch/daycare-man
+ager/src/pages/staff/S
+taffProfile.jsx:2:18[
+31m
+[33m
+1: import React from 
+'react';
+2: import { useAuth, 
+useAuthActions } from 
+'../../context/AuthCon
+text';
+                     ^
+3: import { 
+useNavigate } from 
+'react-router-dom';
+[31m
+    at getRollupError 
+(file:///C:/Users/Shal
+ev/.gemini/antigravity
+/scratch/daycare-manag
+er/node_modules/rollup
+/dist/es/shared/parseA
+st.js:406:41)
+    at error (file:///
+C:/Users/Shalev/.gemin
+i/antigravity/scratch/
+daycare-manager/node_m
+odules/rollup/dist/es/
+shared/parseAst.js:402
+:42)
+    at Module.error (f
+ile:///C:/Users/Shalev
+/.gemini/antigravity/s
+cratch/daycare-manager
+/node_modules/rollup/d
+ist/es/shared/node-ent
+ry.js:17065:16)
+    at 
+Module.traceVariable (
+file:///C:/Users/Shale
+v/.gemini/antigravity/
+scratch/daycare-manage
+r/node_modules/rollup/
+dist/es/shared/node-en
+try.js:17477:29)
+    at ModuleScope.fin
+dVariable (file:///C:/
+Users/Shalev/.gemini/a
+ntigravity/scratch/day
+care-manager/node_modu
+les/rollup/dist/es/sha
+red/node-entry.js:1509
+0:39)
+    at FunctionScope.f
+indVariable (file:///C
+:/Users/Shalev/.gemini
+/antigravity/scratch/d
+aycare-manager/node_mo
+dules/rollup/dist/es/s
+hared/node-entry.js:56
+76:38)
+    at FunctionBodySco
+pe.findVariable (file:
+///C:/Users/Shalev/.ge
+mini/antigravity/scrat
+ch/daycare-manager/nod
+e_modules/rollup/dist/
+es/shared/node-entry.j
+s:5676:38)
+    at 
+Identifier.bind (file:
+///C:/Users/Shalev/.ge
+mini/antigravity/scrat
+ch/daycare-manager/nod
+e_modules/rollup/dist/
+es/shared/node-entry.j
+s:5450:40)
+    at 
+CallExpression.bind (f
+ile:///C:/Users/Shalev
+/.gemini/antigravity/s
+cratch/daycare-manager
+/node_modules/rollup/d
+ist/es/shared/node-ent
+ry.js:2832:23)
+    at 
+CallExpression.bind (f
+ile:///C:/Users/Shalev
+/.gemini/antigravity/s
+cratch/daycare-manager
+/node_modules/rollup/d
+ist/es/shared/node-ent
+ry.js:12199:15)[39m

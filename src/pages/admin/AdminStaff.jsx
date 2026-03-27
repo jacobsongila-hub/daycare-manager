@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { StaffApi } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function AdminStaff() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -16,6 +18,7 @@ export default function AdminStaff() {
       setStaff(res.data || []);
     } catch (err) {
       console.error('Error loading staff', err);
+      addToast('Failed to load staff directory', 'error');
     } finally {
       setLoading(false);
     }
@@ -29,29 +32,42 @@ export default function AdminStaff() {
     const data = Object.fromEntries(formData);
     
     try {
-      if (editStaff) await StaffApi.update(editStaff._id, data);
-      else await StaffApi.create(data);
+      if (editStaff) {
+        await StaffApi.update(editStaff._id, data);
+        addToast('Staff profile updated', 'success');
+      } else {
+        await StaffApi.create(data);
+        addToast('New staff member added', 'success');
+      }
       setShowModal(false);
       loadData();
-    } catch (err) { alert('Error saving staff'); }
+    } catch (err) { 
+      addToast('Error saving staff profile', 'error'); 
+    }
   };
 
   const handleToggleStatus = async (worker) => {
-    // Only simulating status toggle in the Staff profile, user account suspend is in UserManagement
     const newStatus = worker.role === 'Suspended' ? 'Staff' : 'Suspended';
     try {
       await StaffApi.update(worker._id, { role: newStatus });
+      addToast(`Staff status set to ${newStatus}`, 'success');
       loadData();
-    } catch(err) { alert('Error updating status'); }
+    } catch(err) { 
+      addToast('Error updating staff status', 'error'); 
+    }
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Delete this staff profile?')) return;
+    if(!window.confirm('Are you sure you want to permanently delete this staff profile?')) return;
     try {
       await StaffApi.delete(id);
+      addToast('Staff profile deleted', 'success');
       loadData();
-    } catch(e) { alert('Delete failed'); }
+    } catch(e) { 
+      addToast('Delete failed. Ensure user is not linked to active records.', 'error'); 
+    }
   };
+ streams: 
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>

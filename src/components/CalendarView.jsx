@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { CalendarEventsApi } from '../services/api';
+import { useNotification } from '../context/NotificationContext';
 
 export default function CalendarView({ readOnly = false }) {
   const [events, setEvents] = useState([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +18,7 @@ export default function CalendarView({ readOnly = false }) {
       setEvents(res.data || []);
     } catch (err) {
       console.error('Error loading events', err);
+      addToast('Failed to load calendar events', 'error');
     } finally {
       setLoading(false);
     }
@@ -51,11 +52,18 @@ export default function CalendarView({ readOnly = false }) {
     data.date = selectedDate;
 
     try {
-      if (editEvent) await CalendarEventsApi.update(editEvent._id, data);
-      else await CalendarEventsApi.create(data);
+      if (editEvent) {
+        await CalendarEventsApi.update(editEvent._id, data);
+        addToast('Event updated', 'success');
+      } else {
+        await CalendarEventsApi.create(data);
+        addToast('Event saved', 'success');
+      }
       setShowModal(false);
       loadData();
-    } catch(err) { alert('Error saving event'); }
+    } catch(err) { 
+      addToast('Error saving event', 'error'); 
+    }
   };
 
   const handleDelete = async () => {
@@ -63,9 +71,12 @@ export default function CalendarView({ readOnly = false }) {
     if(!window.confirm('Clear event for this day?')) return;
     try {
       await CalendarEventsApi.delete(editEvent._id);
+      addToast('Event removed', 'success');
       setShowModal(false);
       loadData();
-    } catch(err) { alert('Error deleting'); }
+    } catch(err) { 
+      addToast('Error deleting event', 'error'); 
+    }
   };
 
   // Render Grid
@@ -79,40 +90,51 @@ export default function CalendarView({ readOnly = false }) {
     <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
       {/* Calendar Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <button onClick={handlePrevMonth} className="btn">◀</button>
-        <h3 style={{ margin: 0 }}>{monthNames[month]} {year}</h3>
-        <button onClick={handleNextMonth} className="btn">▶</button>
+        <button onClick={handlePrevMonth} className="btn" style={{ padding: '8px 15px' }}>◀</button>
+        <h3 style={{ margin: 0, fontSize: '1.2rem' }}>{monthNames[month]} {year}</h3>
+        <button onClick={handleNextMonth} className="btn" style={{ padding: '8px 15px' }}>▶</button>
       </div>
 
       {/* Days of Week */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5, textAlign: 'center', fontWeight: 'bold', color: '#888', marginBottom: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5, textAlign: 'center', fontWeight: 'bold', color: '#888', marginBottom: 10, fontSize: '0.8rem', textTransform: 'uppercase' }}>
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d}>{d}</div>)}
       </div>
 
       {/* Grid */}
       {loading ? <div className="spinner"></div> : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 5 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '5px 0' }}>
           {days.map((d, i) => {
-            if (!d) return <div key={`pad-${i}`} style={{ background: '#fcfcfc', borderRadius: 8 }} />;
+            if (!d) return <div key={`pad-${i}`} style={{ background: 'transparent' }} />;
             
             const dayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const event = events.find(e => e.date === dayStr);
             const isToday = dayStr === new Date().toISOString().split('T')[0];
+
+            // CONSECUTIVE LOGIC
+            const prevDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d-1).padStart(2,'0')}`;
+            const nextDayStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d+1).padStart(2,'0')}`;
+            const hasPrev = event && events.find(e => e.date === prevDayStr && e.type === event.type);
+            const hasNext = event && events.find(e => e.date === nextDayStr && e.type === event.type);
 
             return (
               <div 
                 key={dayStr} 
                 onClick={() => handleDayClick(dayStr)}
                 style={{ 
-                  aspectRatio: '1', display: 'flex', flexDirection: 'column', padding: 5, borderRadius: 8, cursor: readOnly ? 'default' : 'pointer',
-                  border: isToday ? '2px solid #2196f3' : '1px solid #eee',
-                  background: event ? event.color : 'white',
-                  color: event ? 'white' : '#333'
+                  aspectRatio: '1', display: 'flex', flexDirection: 'column', padding: 5, borderRadius: event ? (hasPrev && hasNext ? '0' : hasPrev ? '0 8px 8px 0' : hasNext ? '8px 0 0 8px' : '8px') : '8px', 
+                  cursor: readOnly ? 'default' : 'pointer',
+                  border: isToday ? '2px solid #2196f3' : '1px solid #f5f5f5',
+                  background: event ? (event.color || '#2196f3') : 'white',
+                  color: event ? 'white' : '#333',
+                  margin: event ? '0' : '2px',
+                  transition: 'transform 0.1s',
+                  zIndex: isToday ? 2 : 1,
+                  position: 'relative'
                 }}
               >
-                <div style={{ fontWeight: 'bold' }}>{d}</div>
-                {event && (
-                  <div style={{ fontSize: '0.65rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 'auto', background: 'rgba(0,0,0,0.2)', padding: '2px 4px', borderRadius: 4 }}>
+                <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{d}</div>
+                {event && !hasPrev && (
+                  <div style={{ fontSize: '0.6rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 'auto', background: 'rgba(0,0,0,0.15)', padding: '2px 4px', borderRadius: 4, fontWeight: 700 }}>
                     {event.type}
                   </div>
                 )}

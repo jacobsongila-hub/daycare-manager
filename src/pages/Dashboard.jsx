@@ -29,6 +29,7 @@ export default function Dashboard() {
 
   const [stats, setStats] = useState({ present: 0, absent: 0, total: 0, staffIn: 0 });
   const [announcements, setAnnouncements] = useState([]);
+  const [birthdays, setBirthdays] = useState([]);
   const [pendingShifts, setPendingShifts] = useState(0);
 
   useEffect(() => {
@@ -49,16 +50,32 @@ export default function Dashboard() {
         const anns = annRes.data || [];
 
         // Calculate today's stats
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayObj = new Date();
+        const todayStr = todayObj.toISOString().split('T')[0];
         const todaysAtt = attendance.filter(a => a.date === todayStr);
 
         const present = todaysAtt.filter(a => a.status === 'Present').length;
         const absent = todaysAtt.filter(a => a.status === 'Absent').length;
-        const staffIn = staffList.filter(s => s.status === 'Active').length; // Mock logic
+        const staffIn = staffList.length; // Simplified staff in count
         
         setStats({ present, absent, total: children.length, staffIn });
         setAnnouncements(anns.slice(0, 3));
         setPendingShifts(shifts.filter(s => s.status === 'Pending').length);
+
+        // Find birthdays in the next 14 days
+        const upcomingBirthdays = children.filter(child => {
+          if (!child.dob) return false;
+          const dob = new Date(child.dob);
+          const birthMonth = dob.getMonth();
+          const birthDay = dob.getDate();
+          
+          const thisYearBirthday = new Date(todayObj.getFullYear(), birthMonth, birthDay);
+          const diffTime = thisYearBirthday - todayObj;
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          return diffDays >= 0 && diffDays <= 14;
+        });
+        setBirthdays(upcomingBirthdays);
 
       } catch (err) {
         console.error('Error loading dashboard data', err);
@@ -85,7 +102,7 @@ export default function Dashboard() {
             <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: 5 }}>{today}</div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '10px', borderRadius: '50%', cursor: 'pointer' }} onClick={() => navigator.share?.({ title: 'Daycare App', url: window.location.origin })}>
+            <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '10px', borderRadius: '50%', cursor: 'pointer' }} onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>
               🔗
             </button>
             <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '10px', borderRadius: '50%', cursor: 'pointer' }} onClick={() => navigate('/admin/settings')}>
@@ -95,7 +112,52 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ALERTS / BANNERS */}
+      {/* ANNOUNCEMENT & BIRTHDAY BANNER */}
+      {(announcements.length > 0 || birthdays.length > 0) && (
+        <div style={{ padding: '0 20px', marginBottom: 20 }}>
+          <div style={{ 
+            background: 'linear-gradient(135deg, #ff9800, #ff5722)', 
+            color: 'white', 
+            borderRadius: 16, 
+            padding: '20px', 
+            boxShadow: '0 10px 20px rgba(255, 152, 0, 0.25)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{ position: 'absolute', right: -20, top: -20, fontSize: '8rem', opacity: 0.1 }}>🎊</div>
+            
+            {birthdays.length > 0 && (
+              <div style={{ marginBottom: announcements.length > 0 ? 15 : 0 }}>
+                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>🎂 Upcoming Birthdays</h4>
+                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                  {birthdays.slice(0, 3).map(b => (
+                    <div key={b._id} style={{ background: 'rgba(255,255,255,0.2)', padding: '5px 12px', borderRadius: 20, fontSize: '0.9rem', fontWeight: 600 }}>
+                      {b.name} ({new Date(b.dob).toLocaleDateString([], { month: 'short', day: 'numeric' })})
+                    </div>
+                  ))}
+                  {birthdays.length > 3 && <span style={{ fontSize: '0.9rem' }}>+{birthdays.length - 3} more</span>}
+                </div>
+              </div>
+            )}
+
+            {announcements.length > 0 && (
+              <div>
+                <h4 style={{ margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: 8, fontSize: '1.1rem' }}>📢 Announcement</h4>
+                <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, lineHeight: 1.3 }}>{announcements[0].title}</p>
+                <p style={{ margin: '5px 0 0 0', fontSize: '0.9rem', opacity: 0.9 }}>{announcements[0].message.substring(0, 80)}...</p>
+                <button 
+                  onClick={() => navigate('/admin/announcements')}
+                  style={{ background: 'white', color: '#ff5722', border: 'none', padding: '6px 15px', borderRadius: 20, fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', marginTop: 12 }}
+                >
+                  View All
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ALERTS */}
       <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {pendingShifts > 0 && (
           <div style={{ background: '#fff3e0', borderLeft: '4px solid #ff9800', padding: 15, borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -106,12 +168,6 @@ export default function Dashboard() {
         {attendanceProgress < 100 && (
           <div style={{ background: '#ffebee', borderLeft: '4px solid #f44336', padding: 15, borderRadius: 8 }}>
             ⚠️ <strong>Unmarked Children Alert:</strong> {stats.total - (stats.present + stats.absent)} children still need attendance marked.
-          </div>
-        )}
-
-        {announcements.length > 0 && (
-          <div style={{ background: '#e3f2fd', borderLeft: '4px solid #2196f3', padding: 15, borderRadius: 8 }}>
-            📢 <strong>Latest Announcement:</strong> {announcements[0].title}
           </div>
         )}
       </div>

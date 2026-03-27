@@ -1,6 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
-import { StaffApi, TimeEntriesApi, clockIn, clockOut } from '../../services/api';
-import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 
 function useClock() {
   const [now, setNow] = useState(new Date());
@@ -15,9 +13,17 @@ function formatTime(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 }
+
 function formatDate(iso) {
   if (!iso) return '';
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function calculateDiff(start, end) {
+  if (!start || !end) return 0;
+  const s = new Date(start);
+  const e = new Date(end);
+  return (e - s) / (1000 * 60 * 60);
 }
 
 export default function StaffTimeTracking() {
@@ -27,8 +33,7 @@ export default function StaffTimeTracking() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actioning, setActioning] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const { addToast } = useNotification();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,109 +45,143 @@ export default function StaffTimeTracking() {
       const staffList = sr.data?.data ?? sr.data ?? [];
       const allEntries = er.data?.data ?? er.data ?? [];
 
-      // Find this user's staff record by email match
       const me = Array.isArray(staffList)
         ? staffList.find(s => s.email === user?.email) ?? staffList[0]
         : null;
 
       if (me) {
-        setMyStaffId(me.id ?? me._id);
+        setMyStaffId(me._id || me.id);
         const myEntries = Array.isArray(allEntries)
-          ? allEntries.filter(e => (e.staffId ?? e.staff_id) === (me.id ?? me._id))
+          ? allEntries.filter(e => e.staffId === (me._id || me.id))
           : [];
         setEntries(myEntries);
       }
     } catch {
-      setError('Failed to load time data.');
+      addToast('Failed to load time data', 'error');
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, addToast]);
 
   useEffect(() => { load(); }, [load]);
 
-  const showSuccess = (msg) => { setSuccess(msg); setTimeout(() => setSuccess(''), 3500); };
-
   const handleClockIn = async () => {
-    setActioning(true); setError('');
+    if (!myStaffId) return;
+    setActioning(true);
     try {
       await clockIn(myStaffId);
-      showSuccess('✅ Clocked in!');
-      await load();
+      addToast('Clocked in successfully', 'success');
+      load();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to clock in.');
+      addToast(err.response?.data?.message || 'Failed to clock in', 'error');
     } finally { setActioning(false); }
   };
 
   const handleClockOut = async () => {
-    setActioning(true); setError('');
+    if (!myStaffId) return;
+    setActioning(true);
     try {
       await clockOut(myStaffId);
-      showSuccess('✅ Clocked out!');
-      await load();
+      addToast('Clocked out successfully', 'success');
+      load();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to clock out.');
+      addToast(err.response?.data?.message || 'Failed to clock out', 'error');
     } finally { setActioning(false); }
   };
+
+  // Stats
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayHours = entries
+    .filter(e => e.clockIn?.startsWith(todayStr))
+    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || new Date().toISOString()), 0);
+
+  const startOfWeek = new Date();
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  const weekHours = entries
+    .filter(e => new Date(e.clockIn) >= startOfWeek)
+    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
 
   const timeDisplay = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
-    <div>
-      <div className="page-header">
-        <div>
-          <div className="page-title">My Time</div>
-          <div className="page-subtitle">Your clock in / out</div>
+    <div style={{ paddingBottom: 80 }}>
+      {/* HEADER */}
+      <div style={{ padding: '20px', background: 'linear-gradient(135deg, #2e7d32, #43a047)', color:'white', borderRadius: '0 0 24px 24px', textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ fontSize: '0.9rem', opacity: 0.8, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 700 }}>{dateDisplay}</div>
+        <div style={{ fontSize: '3rem', fontWeight: 800, margin: '10px 0' }}>{timeDisplay}</div>
+        <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>Hello, {user?.name}</div>
+      </div>
+
+      {/* SUMMARY */}
+      <div style={{ padding: '0 20px', display: 'flex', gap: 15, marginBottom: 25 }}>
+        <div style={{ flex: 1, background: 'white', padding: 15, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #4caf50' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#4caf50' }}>{todayHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>Today</div>
+        </div>
+        <div style={{ flex: 1, background: 'white', padding: 15, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #2e7d32' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2e7d32' }}>{weekHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>This Week</div>
         </div>
       </div>
 
-      {error && <div className="alert alert-error">⚠️ {error}</div>}
-      {success && <div className="alert alert-success">{success}</div>}
-
-      <div className="clock-panel" style={{ background: 'linear-gradient(135deg, #2e7d32, #43a047)' }}>
-        <div className="clock-time">{timeDisplay}</div>
-        <div className="clock-date">{dateDisplay}</div>
-        <div className="clock-buttons">
-          <button className="btn-clock-in" onClick={handleClockIn} disabled={actioning || !myStaffId}>
-            ▶ Clock In
-          </button>
-          <button className="btn-clock-in" onClick={handleClockOut} disabled={actioning || !myStaffId}>
-            ■ Clock Out
-          </button>
-        </div>
+      {/* ACTIONS */}
+      <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15, marginBottom: 30 }}>
+        <button 
+          onClick={handleClockIn} 
+          disabled={actioning || !myStaffId}
+          style={{ background: '#4caf50', color: 'white', border: 'none', padding: '15px', borderRadius: 16, fontSize: '1rem', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, boxShadow: '0 6px 15px rgba(76, 175, 80, 0.2)' }}
+        >
+          <span style={{ fontSize: '1.5rem' }}>▶</span> Clock In
+        </button>
+        <button 
+          onClick={handleClockOut} 
+          disabled={actioning || !myStaffId}
+          style={{ background: '#f44336', color: 'white', border: 'none', padding: '15px', borderRadius: 16, fontSize: '1rem', fontWeight: 700, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, boxShadow: '0 6px 15px rgba(244, 67, 54, 0.2)' }}
+        >
+          <span style={{ fontSize: '1.5rem' }}>■</span> Clock Out
+        </button>
       </div>
 
-      <div className="section-label">My Recent Entries</div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: '32px' }}><div className="spinner" style={{ margin: '0 auto' }}></div></div>
-      ) : entries.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon">⏱️</div>
-          <div className="empty-title">No entries yet</div>
-          <div className="empty-sub">Clock in to start tracking your time</div>
-        </div>
-      ) : (
-        entries.slice().reverse().map((entry, i) => {
-          const isConfirmed = entry.confirmed || entry.status === 'confirmed';
-          return (
-            <div key={entry.id ?? entry._id ?? i} className="time-entry">
-              <div className="time-entry-header">
-                <div className="time-entry-name">{formatDate(entry.clockIn ?? entry.timestamp ?? entry.created_at)}</div>
-                <span className={`badge ${isConfirmed ? 'badge-confirmed' : 'badge-pending'}`}>
-                  {isConfirmed ? '✓ Confirmed' : 'Pending'}
-                </span>
-              </div>
-              <div className="time-row">
-                {entry.clockIn && <span>▶ In: {formatTime(entry.clockIn)}</span>}
-                {entry.clockOut && <span>■ Out: {formatTime(entry.clockOut)}</span>}
-                {entry.type && <span className={`badge badge-${entry.type}`}>{entry.type}</span>}
-              </div>
-            </div>
-          );
-        })
-      )}
+      {/* MY ENTRIES */}
+      <div style={{ padding: '0 20px' }}>
+        <h3 style={{ fontSize: '1.1rem', color: '#555', marginBottom: 15 }}>My Recent Entries</h3>
+        {loading ? <div className="spinner"></div> : entries.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 20px', background: '#f5f5f5', borderRadius: 16, color: '#888' }}>
+            <div style={{ fontSize: '3rem', marginBottom: 10 }}>⏲️</div>
+            <p>No time entries yet. Start by clocking in!</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {entries.slice().reverse().slice(0, 10).map(entry => {
+              const isConfirmed = entry.confirmed;
+              const duration = calculateDiff(entry.clockIn, entry.clockOut);
+              return (
+                <div key={entry._id} style={{ background: 'white', padding: 15, borderRadius: 16, boxShadow: '0 2px 8px rgba(0,0,0,0.03)', border: isConfirmed ? '1px solid #e0e0e0' : '1px solid #ffe0b2' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                    <div style={{ fontWeight: 700, color: '#333' }}>{formatDate(entry.clockIn)}</div>
+                    <div style={{ fontSize: '0.75rem', padding: '3px 8px', borderRadius: 6, background: isConfirmed ? '#e8f5e9' : '#fff3e0', color: isConfirmed ? '#2e7d32' : '#ef6c00', fontWeight: 700 }}>
+                      {isConfirmed ? '✓ CONFIRMED' : 'PENDING'}
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#666' }}>
+                    <div>
+                      <span style={{ color: '#4caf50' }}>▶ {formatTime(entry.clockIn)}</span>
+                      {entry.clockOut && <span style={{ color: '#f44336' }}> — ■ {formatTime(entry.clockOut)}</span>}
+                    </div>
+                    {entry.clockOut && (
+                      <div style={{ textAlign: 'right' }}>
+                        <strong style={{ fontSize: '1rem', color: '#333' }}>{duration.toFixed(1)} hrs</strong>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
