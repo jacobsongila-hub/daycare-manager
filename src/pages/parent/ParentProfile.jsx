@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { FamiliesApi, ChildrenApi } from '../../services/api';
 
 export default function ParentProfile() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const [family, setFamily] = useState(null);
   const [children, setChildren] = useState([]);
@@ -36,7 +38,7 @@ export default function ParentProfile() {
       else await FamiliesApi.create({ ...data, userId: user?.id });
       setEditing(false);
       loadData();
-    } catch (err) { alert('Error updating profile'); }
+    } catch (err) { addToast('Error updating profile', 'error'); }
   };
 
   return (
@@ -64,6 +66,28 @@ export default function ParentProfile() {
                   <input name="fatherName" defaultValue={family?.fatherName} placeholder="Father's Name" className="input" />
                   <input name="fatherPhone" defaultValue={family?.fatherPhone} placeholder="Father's Phone" className="input" />
                 </div>
+
+                <div style={{ borderTop: '1px solid #eee', marginTop: 15, paddingTop: 15 }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: '#6a1b9a' }}>🚨 Emergency Contacts (Up to 4)</h4>
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={`em-edit-${i}`} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.5fr', gap: 10, marginBottom: 10 }}>
+                      <input name={`emergencyName${i}`} defaultValue={family?.[`emergencyName${i}`] || (i === 1 ? family?.emergencyContactName : '')} placeholder={`Contact ${i} Name`} className="input" />
+                      <input name={`emergencyRelation${i}`} defaultValue={family?.[`emergencyRelation${i}`]} placeholder={`Relation`} className="input" />
+                      <input name={`emergencyPhone${i}`} defaultValue={family?.[`emergencyPhone${i}`] || (i === 1 ? family?.emergencyContactPhone : '')} placeholder={`Phone`} className="input" />
+                    </div>
+                  ))}
+                </div>
+
+                <div style={{ borderTop: '1px solid #eee', marginTop: 5, paddingTop: 15 }}>
+                  <h4 style={{ margin: '0 0 10px 0', color: '#1565c0' }}>🚙 Authorized Pick-ups (Up to 4)</h4>
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={`pu-edit-${i}`} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.5fr', gap: 10, marginBottom: 10 }}>
+                      <input name={`pickupName${i}`} defaultValue={family?.[`pickupName${i}`]} placeholder={`Pickup ${i} Name`} className="input" />
+                      <input name={`pickupRelation${i}`} defaultValue={family?.[`pickupRelation${i}`]} placeholder={`Relation`} className="input" />
+                      <input name={`pickupPhone${i}`} defaultValue={family?.[`pickupPhone${i}`]} placeholder={`Phone / ID`} className="input" />
+                    </div>
+                  ))}
+                </div>
                 <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
                   <button type="submit" className="btn btn-primary" style={{ background: '#8e24aa' }}>Save Changes</button>
                   <button type="button" className="btn" onClick={() => setEditing(false)}>Cancel</button>
@@ -89,6 +113,30 @@ export default function ParentProfile() {
                   <p style={{ margin: 0, color: '#1565c0' }}>📞 {family?.fatherPhone || '+1 (000) 000-0000'}</p>
                 </div>
               </div>
+            )}
+            
+            {!editing && (
+              <>
+                <div style={{ padding: '15px 20px', background: '#fff1f0', color: '#cf1322', borderRadius: 8, marginTop: 20 }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚨 Emergency Contacts</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: 8 }}>
+                    {[1, 2, 3, 4].map(i => family?.[`emergencyName${i}`] && (
+                      <div key={`em-view-${i}`}>• {family[`emergencyName${i}`]} ({family[`emergencyRelation${i}`] || 'Relation'}): {family[`emergencyPhone${i}`]}</div>
+                    ))}
+                    {!family?.emergencyName1 && !family?.emergencyContactName && <div style={{ opacity: 0.8 }}>No emergency contacts listed.</div>}
+                  </div>
+                </div>
+
+                <div style={{ padding: '15px 20px', background: '#e3f2fd', color: '#1565c0', borderRadius: 8, marginTop: 15 }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚙 Authorized Pick-ups</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) minmax(200px, 1fr)', gap: 8 }}>
+                    {[1, 2, 3, 4].map(i => family?.[`pickupName${i}`] && (
+                      <div key={`pu-view-${i}`}>• {family[`pickupName${i}`]} ({family[`pickupRelation${i}`]}): {family[`pickupPhone${i}`]}</div>
+                    ))}
+                    {!family?.pickupName1 && <div style={{ opacity: 0.8 }}>No authorized pickups listed.</div>}
+                  </div>
+                </div>
+              </>
             )}
           </div>
 

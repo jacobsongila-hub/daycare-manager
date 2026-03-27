@@ -151,6 +151,11 @@ export default function TimeTracking() {
     .filter(e => new Date(e.clockIn) >= startOfWeek)
     .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
 
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthHours = staffEntries
+    .filter(e => new Date(e.clockIn) >= startOfMonth)
+    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
+
   const timeDisplay = now.toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateDisplay = now.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
@@ -176,14 +181,18 @@ export default function TimeTracking() {
       </div>
 
       {/* SUMMARY CARDS */}
-      <div style={{ padding: '0 20px', display: 'flex', gap: 15, marginBottom: 25 }}>
-        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--success)', padding: 20 }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--success)' }}>{todayHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', marginTop: 4 }}>Today</div>
+      <div style={{ padding: '0 20px', display: 'flex', gap: 10, marginBottom: 25 }}>
+        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--success)', padding: 15 }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--success)' }}>{todayHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>Today</div>
         </div>
-        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--primary)', padding: 20 }}>
-          <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--primary)' }}>{weekHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.75rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', marginTop: 4 }}>This Week</div>
+        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid var(--primary)', padding: 15 }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)' }}>{weekHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>This Week</div>
+        </div>
+        <div className="card" style={{ flex: 1, textAlign: 'center', borderTop: '4px solid #9c27b0', padding: 15 }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#9c27b0' }}>{monthHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.7rem', color: 'var(--text-light)', fontWeight: 800, textTransform: 'uppercase', margin: '4px 0 0 0' }}>This Month</div>
         </div>
       </div>
 

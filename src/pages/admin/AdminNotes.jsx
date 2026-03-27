@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { ChildrenApi, DailyNotesApi } from '../../services/api';
 
 export default function AdminNotes() {
+  const { addToast } = useNotification();
   const { t, lang } = useLanguage();
   const [children, setChildren] = useState([]);
   const [selectedChild, setSelectedChild] = useState('');
@@ -29,8 +31,8 @@ export default function AdminNotes() {
       await DailyNotesApi.create(newNote);
       setNotes([newNote, ...notes]);
       setNoteText('');
-      alert(t('noteSaved') || 'Note saved!');
-    } catch(err) { alert(t('failedToSaveNote') || 'Failed to save'); }
+      addToast(t('noteSaved') || 'Note saved!', 'success');
+    } catch(err) { addToast(t('failedToSaveNote') || 'Failed to save', 'error'); }
   };
 
   return (
@@ -53,7 +55,7 @@ export default function AdminNotes() {
             </select>
           </div>
           
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label">{t('notes')}</label>
             <textarea 
               className="input" 
@@ -61,7 +63,20 @@ export default function AdminNotes() {
               placeholder={t('writeNotePrompt')}
               value={noteText}
               onChange={e => setNoteText(e.target.value)}
+              style={{ paddingBottom: 40 }}
             />
+            <div style={{ padding: '8px 10px', background: '#f5f5f5', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, border: '1px solid var(--border)', borderTop: 'none', display: 'flex', gap: 10, marginTop: -6, overflowX: 'auto' }}>
+              {['😊','😍','😴','🍼','💩','🤒','🎨','🎶','🍎','🏆'].map(emoji => (
+                <button 
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNoteText(prev => prev + emoji)}
+                  style={{ background: 'white', border: '1px solid #ddd', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
           </div>
           
           <button className="btn btn-primary" onClick={handleSave} style={{ alignSelf: 'flex-start', padding: '12px 30px' }}>

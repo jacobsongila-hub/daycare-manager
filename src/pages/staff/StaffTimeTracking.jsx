@@ -136,6 +136,11 @@ export default function StaffTimeTracking() {
     .filter(e => new Date(e.clockIn) >= startOfWeek)
     .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
 
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthHours = entries
+    .filter(e => new Date(e.clockIn) >= startOfMonth)
+    .reduce((total, e) => total + calculateDiff(e.clockIn, e.clockOut || (e.clockIn.startsWith(todayStr) ? new Date().toISOString() : e.clockIn)), 0);
+
   const timeDisplay = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const dateDisplay = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
@@ -149,14 +154,18 @@ export default function StaffTimeTracking() {
       </div>
 
       {/* SUMMARY */}
-      <div style={{ padding: '0 20px', display: 'flex', gap: 15, marginBottom: 25 }}>
-        <div style={{ flex: 1, background: 'white', padding: 15, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #4caf50' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#4caf50' }}>{todayHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>Today</div>
+      <div style={{ padding: '0 15px', display: 'flex', gap: 10, marginBottom: 25 }}>
+        <div style={{ flex: 1, background: 'white', padding: 10, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #4caf50' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#4caf50' }}>{todayHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>Today</div>
         </div>
-        <div style={{ flex: 1, background: 'white', padding: 15, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #2e7d32' }}>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#2e7d32' }}>{weekHours.toFixed(1)}h</div>
-          <div style={{ fontSize: '0.75rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>This Week</div>
+        <div style={{ flex: 1, background: 'white', padding: 10, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #2e7d32' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#2e7d32' }}>{weekHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>This Week</div>
+        </div>
+        <div style={{ flex: 1, background: 'white', padding: 10, borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', textAlign: 'center', borderTop: '4px solid #9c27b0' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#9c27b0' }}>{monthHours.toFixed(1)}h</div>
+          <div style={{ fontSize: '0.65rem', color: '#888', fontWeight: 700, textTransform: 'uppercase' }}>This Month</div>
         </div>
       </div>
 

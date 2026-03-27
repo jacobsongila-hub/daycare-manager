@@ -1,5 +1,8 @@
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useConfirm } from '../../context/ConfirmContext';
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 
 const roleColors = {
   admin: 'avatar-blue',
@@ -11,6 +14,7 @@ const roleColors = {
 export default function UserManagement() {
   const { t } = useLanguage();
   const { addToast } = useNotification();
+  const { confirm } = useConfirm();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -79,7 +83,7 @@ export default function UserManagement() {
 
   const handleDelete = async (u) => {
     const id = u._id || u.id;
-    if (window.confirm(t('confirmDeleteUser'))) {
+    if (await confirm(t('confirmDeleteUser') || 'Delete User?', 'Confirm Delete', true)) {
       try {
         await api.delete(`/api/users/${id}`);
         addToast(t('userDeleted'), 'success');

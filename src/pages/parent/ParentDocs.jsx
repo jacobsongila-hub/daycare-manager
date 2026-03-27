@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { DocumentsApi, FamiliesApi } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function ParentDocs() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const [docs, setDocs] = useState([]);
   const [family, setFamily] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -46,15 +50,15 @@ export default function ParentDocs() {
       await DocumentsApi.create(data);
       e.target.reset();
       loadData();
-    } catch(err) { alert('Error uploading document'); }
+    } catch(err) { addToast('Error uploading document', 'error'); }
   };
 
   const deleteDoc = async (id) => {
-    if(!window.confirm('Delete document?')) return;
+    if(!(await confirm('Delete document?', 'Confirm Delete', true))) return;
     try {
       await DocumentsApi.delete(id);
       loadData();
-    } catch(err) { alert('Error deleting'); }
+    } catch(err) { addToast('Error deleting', 'error'); }
   };
 
   return (

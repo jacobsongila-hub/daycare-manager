@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { DocumentsApi } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function StaffDocs() {
   const { user } = useAuth();
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -35,16 +37,18 @@ export default function StaffDocs() {
     try {
       await DocumentsApi.create(data);
       e.target.reset();
+      addToast('Document uploaded', 'success');
       loadData();
-    } catch(err) { alert('Error uploading document'); }
+    } catch(err) { addToast('Error uploading document', 'error'); }
   };
 
   const deleteDoc = async (id) => {
-    if(!window.confirm('Delete document?')) return;
+    if(!(await confirm('Delete document?', 'Confirm Delete', true))) return;
     try {
       await DocumentsApi.delete(id);
+      addToast('Document deleted', 'success');
       loadData();
-    } catch(err) { alert('Error deleting'); }
+    } catch(err) { addToast('Error deleting', 'error'); }
   };
 
   return (

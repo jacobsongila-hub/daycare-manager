@@ -3,6 +3,7 @@ import { FamiliesApi, ChildrenApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { calculateAge } from '../../utils/formatters';
 import { useLanguage } from '../../context/LanguageContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function FamilyManagement() {
   const [families, setFamilies] = useState([]);
@@ -10,6 +11,7 @@ export default function FamilyManagement() {
   const [loading, setLoading] = useState(true);
   const { addToast } = useNotification();
   const { t } = useLanguage();
+  const { confirm } = useConfirm();
 
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [editFamily, setEditFamily] = useState(null);
@@ -62,7 +64,7 @@ export default function FamilyManagement() {
   };
 
   const handleDeleteFamily = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this family and all linked records?')) return;
+    if (!(await confirm('Are you sure you want to delete this family and all linked records?', 'Confirm Delete', true))) return;
     try {
       await FamiliesApi.delete(id);
       addToast('Family deleted', 'success');
@@ -94,7 +96,7 @@ export default function FamilyManagement() {
   };
 
   const handleDeleteChild = async (id) => {
-    if (!window.confirm('Delete this child?')) return;
+    if (!(await confirm('Delete this child?', 'Confirm Delete', true))) return;
     try {
       await ChildrenApi.delete(id);
       addToast('Child profile removed', 'success');
@@ -143,11 +145,30 @@ export default function FamilyManagement() {
             </div>
 
             {/* Emergency Info Area */}
-            {(fam.emergencyContactName || fam.emergencyContactPhone) && (
-              <div style={{ padding: '10px 25px', background: '#fff1f0', color: '#cf1322', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border)' }}>
-                🚨 {t('emergency')}: {fam.emergencyContactName} ({fam.emergencyContactPhone})
+            <div style={{ padding: '15px 25px', background: '#fff1f0', color: '#cf1322', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border)' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚨 {t('emergency')}</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[1, 2, 3, 4].map(i => fam[`emergencyName${i}`] && (
+                  <div key={`em-${i}`}>
+                    • {fam[`emergencyName${i}`]} ({fam[`emergencyRelation${i}`] || 'Relation'}): {fam[`emergencyPhone${i}`]}
+                  </div>
+                ))}
+                {!fam.emergencyName1 && <div>No emergency contacts listed.</div>}
               </div>
-            )}
+            </div>
+
+            {/* Authorized Pickups Area */}
+            <div style={{ padding: '15px 25px', background: '#e3f2fd', color: '#1565c0', fontSize: '0.85rem', fontWeight: 600, borderBottom: '1px solid var(--border)' }}>
+              <h4 style={{ margin: '0 0 10px 0', fontSize: '1rem' }}>🚙 Authorized Pick-ups</h4>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {[1, 2, 3, 4].map(i => fam[`pickupName${i}`] && (
+                  <div key={`pu-${i}`}>
+                    • {fam[`pickupName${i}`]} ({fam[`pickupRelation${i}`]}): {fam[`pickupPhone${i}`]}
+                  </div>
+                ))}
+                {!fam.pickupName1 && <div>No authorized pickups listed.</div>}
+              </div>
+            </div>
 
             {/* Children List */}
             <div style={{ padding: 25 }}>
@@ -215,11 +236,24 @@ export default function FamilyManagement() {
                 </div>
               </div>
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: 15 }}>
-                <h4 className="section-label" style={{ marginBottom: 12 }}>🚨 {t('emergency')}</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <input name="emergencyContactName" defaultValue={editFamily?.emergencyContactName} placeholder={t('emergencyName')} className="input" />
-                  <input name="emergencyContactPhone" defaultValue={editFamily?.emergencyContactPhone} placeholder={t('emergencyPhone')} className="input" />
-                </div>
+                <h4 className="section-label" style={{ marginBottom: 12 }}>🚨 {t('emergency')} (Up to 4)</h4>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={`em-edit-${i}`} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.5fr', gap: 10, marginBottom: 10 }}>
+                    <input name={`emergencyName${i}`} defaultValue={editFamily?.[`emergencyName${i}`] || (i === 1 ? editFamily?.emergencyContactName : '')} placeholder={`Contact ${i} Name`} className="input" />
+                    <input name={`emergencyRelation${i}`} defaultValue={editFamily?.[`emergencyRelation${i}`]} placeholder={`Relation`} className="input" />
+                    <input name={`emergencyPhone${i}`} defaultValue={editFamily?.[`emergencyPhone${i}`] || (i === 1 ? editFamily?.emergencyContactPhone : '')} placeholder={`Phone`} className="input" />
+                  </div>
+                ))}
+              </div>
+              <div style={{ borderTop: '1px solid var(--border)', paddingTop: 15 }}>
+                <h4 className="section-label" style={{ marginBottom: 12 }}>🚙 Authorized Pick-ups (Up to 4)</h4>
+                {[1, 2, 3, 4].map(i => (
+                  <div key={`pu-edit-${i}`} style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1.5fr', gap: 10, marginBottom: 10 }}>
+                    <input name={`pickupName${i}`} defaultValue={editFamily?.[`pickupName${i}`]} placeholder={`Pickup ${i} Name`} className="input" />
+                    <input name={`pickupRelation${i}`} defaultValue={editFamily?.[`pickupRelation${i}`]} placeholder={`Relation`} className="input" />
+                    <input name={`pickupPhone${i}`} defaultValue={editFamily?.[`pickupPhone${i}`]} placeholder={`Phone / ID`} className="input" />
+                  </div>
+                ))}
               </div>
               <div className="modal-actions" style={{ display: 'flex', gap: 12, marginTop: 10 }}>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowFamilyModal(false)}>{t('cancel')}</button>

@@ -1,17 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { DocumentsApi } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
+import { DocumentsApi, FamiliesApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function AdminDocs() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const [docs, setDocs] = useState([]);
+  const [families, setFamilies] = useState([]);
+  const [visibility, setVisibility] = useState('general');
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const res = await DocumentsApi.getAll();
-      setDocs(res.data || []);
+      const [dRes, fRes] = await Promise.all([DocumentsApi.getAll(), FamiliesApi.getAll()]);
+      setDocs(dRes.data || []);
+      setFamilies(fRes.data || []);
     } catch (err) {
       console.error('Error loading documents', err);
     } finally {
@@ -26,6 +33,10 @@ export default function AdminDocs() {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
     
+    if (data.ownerId === 'private' && data.familyId) {
+      data.ownerId = data.familyId;
+    }
+    
     // Mock upload URL for demo
     data.url = `https://dummyfile.com/${Math.random().toString(36).substring(7)}.pdf`;
     data.type = 'General Document';
@@ -34,15 +45,15 @@ export default function AdminDocs() {
       await DocumentsApi.create(data);
       e.target.reset();
       loadData();
-    } catch(err) { alert('Upload failed'); }
+    } catch(err) { addToast('Upload failed', 'error'); }
   };
 
   const deleteDoc = async (id) => {
-    if(!window.confirm('Delete document permanently?')) return;
+    if(!(await confirm('Delete document permanently?', 'Confirm Delete', true))) return;
     try {
       await DocumentsApi.delete(id);
       loadData();
-    } catch(err) { alert('Delete failed'); }
+    } catch(err) { addToast('Delete failed', 'error'); }
   };
 
   return (
@@ -88,7 +99,7 @@ export default function AdminDocs() {
                 <div>
                   <h4 style={{ margin: '0 0 5px 0', fontSize: '1.1rem' }}>{doc.title}</h4>
                   <div style={{ fontSize: '0.85rem', color: '#888' }}>
-                    📅 {new Date(doc.createdAt).toLocaleDateString()} | 🏷️ {doc.category} | 👁️ {doc.ownerId === 'general' ? 'Visible to All' : 'Restricted'}
+                    📅 {new Date(doc.createdAt).toLocaleDateString()} | 🏷️ {doc.category} | 👁️ {doc.ownerId === 'general' ? 'Visible to All' : (doc.ownerId === 'staff-only' ? 'Restricted (Staff)' : `Private: ${families.find(f => f._id === doc.familyId)?.familyName || 'Unknown Family'}`)}
                   </div>
                 </div>
               </div>

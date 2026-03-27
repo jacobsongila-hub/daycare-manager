@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { ChildrenApi, AttendanceApi, TimeEntriesApi } from '../../services/api';
 import { Link } from 'react-router-dom';
 
 export default function StaffHome() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const [children, setChildren] = useState([]);
   const [attendance, setAttendance] = useState({});
@@ -54,7 +56,7 @@ export default function StaffHome() {
         await TimeEntriesApi.create({ staffId: user.id, type: 'in', timestamp: new Date().toISOString() });
       }
       loadData();
-    } catch (err) { alert('Error updating time entry'); }
+    } catch (err) { addToast('Error updating time entry', 'error'); }
   };
 
   const updateStatus = async (childId, status) => {
@@ -65,7 +67,7 @@ export default function StaffHome() {
       }
       await AttendanceApi.create(payload); // Actually marks attendance
       loadData();
-    } catch (err) { alert('Failed to mark'); }
+    } catch (err) { addToast('Failed to mark', 'error'); }
   };
 
   return (

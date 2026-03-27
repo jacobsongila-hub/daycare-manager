@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { ChildrenApi, AttendanceApi } from '../../services/api';
+import { useNotification } from '../../context/NotificationContext';
 
 export default function StaffAttendance() {
   const [children, setChildren] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [loading, setLoading] = useState(true);
+  const { addToast } = useNotification();
 
   // Default to today
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -36,8 +38,9 @@ export default function StaffAttendance() {
       }
       const res = await AttendanceApi.create(payload); // mark route upserts correctly in backend
       setAttendance(prev => ({ ...prev, [childId]: res.data }));
+      addToast(`Marked ${newStatus}`, 'success');
       loadData();
-    } catch(err) { alert('Update failed'); }
+    } catch(err) { addToast('Update failed', 'error'); }
   };
 
   return (

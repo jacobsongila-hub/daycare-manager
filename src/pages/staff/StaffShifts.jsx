@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { ShiftRequestsApi } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function StaffShifts() {
   const { user } = useAuth();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -37,15 +39,15 @@ export default function StaffShifts() {
       });
       e.target.reset();
       loadData();
-    } catch (err) { alert('Error requesting shift time'); }
+    } catch (err) { addToast('Error requesting shift time', 'error'); }
   };
 
   const deleteRequest = async (id) => {
-    if(!window.confirm('Delete this request?')) return;
+    if(!(await confirm('Delete this request?', 'Confirm Delete', true))) return;
     try {
       await ShiftRequestsApi.delete(id);
       loadData();
-    } catch (err) { alert('Error deleting'); }
+    } catch (err) { addToast('Error deleting', 'error'); }
   };
 
   return (

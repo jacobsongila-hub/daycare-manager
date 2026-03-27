@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { AttendanceApi, ChildrenApi, StaffApi, TimeEntriesApi } from '../../services/api';
 
 export default function AdminReports() {
+  const { addToast } = useNotification();
   const [reportType, setReportType] = useState('attendance');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
@@ -20,10 +22,14 @@ export default function AdminReports() {
         const summary = kids.map(k => {
           const myAtts = atts.filter(a => a.childId === k._id);
           const present = myAtts.filter(a => a.status === 'Present').length;
-          const absent = myAtts.filter(a => a.status === 'Absent').length;
-          return { name: k.name, present, absent, totalDays: myAtts.length };
+          const absences = myAtts.filter(a => a.status === 'Absent' || a.status === 'Late');
+          const absentCount = myAtts.filter(a => a.status === 'Absent').length;
+          
+          const issues = absences.map(a => `${a.date}: ${a.status} ${a.reason ? `(${a.reason})` : ''}`).join(', ');
+
+          return { name: k.name, present, absent: absentCount, totalDays: myAtts.length, issues: issues || 'None' };
         });
-        setReportData({ type: 'Attendance Summary', data: summary });
+        setReportData({ type: 'Attendance Detailed Summary', data: summary });
 
       } else if (reportType === 'staffHours') {
         const [tRes, sRes] = await Promise.all([TimeEntriesApi.getAll(), StaffApi.getAll()]);
@@ -42,7 +48,7 @@ export default function AdminReports() {
         setReportData({ type: 'Children Master List', data: summary });
       }
     } catch (err) {
-      alert('Error generating report');
+      addToast('Error generating report', 'error');
     } finally {
       setLoading(false);
     }
@@ -107,7 +113,7 @@ export default function AdminReports() {
             <thead>
               <tr style={{ background: '#f5f5f5', textAlign: 'left' }}>
                 {reportType === 'attendance' && (
-                  <><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Child Name</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Days Present</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Days Absent</th></>
+                  <><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Child Name</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Days Present</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Days Absent</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Exceptions & Reasons</th></>
                 )}
                 {reportType === 'childList' && (
                   <><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Child Name</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>DOB</th><th style={{ padding: 12, borderBottom: '2px solid #ddd' }}>Allergies</th></>
@@ -121,7 +127,7 @@ export default function AdminReports() {
               {reportData.data.map((row, i) => (
                 <tr key={i} style={{ borderBottom: '1px solid #eee' }}>
                   {reportType === 'attendance' && (
-                    <><td style={{ padding: 12 }}><strong>{row.name}</strong></td><td style={{ padding: 12, color: '#4caf50' }}>{row.present}</td><td style={{ padding: 12, color: '#f44336' }}>{row.absent}</td></>
+                    <><td style={{ padding: 12 }}><strong>{row.name}</strong></td><td style={{ padding: 12, color: '#4caf50' }}>{row.present}</td><td style={{ padding: 12, color: '#f44336' }}>{row.absent}</td><td style={{ padding: 12, fontSize: '0.85rem', color: row.issues === 'None' ? '#aaa' : '#d32f2f' }}>{row.issues}</td></>
                   )}
                   {reportType === 'childList' && (
                     <><td style={{ padding: 12 }}><strong>{row.name}</strong></td><td style={{ padding: 12 }}>{row.dob}</td><td style={{ padding: 12, color: row.allergies !== 'None' ? '#d32f2f' : '#666' }}>{row.allergies}</td></>

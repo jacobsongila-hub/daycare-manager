@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { PhotosApi, ChildrenApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function AdminPhotos() {
   const [photos, setPhotos] = useState([]);
@@ -11,6 +12,7 @@ export default function AdminPhotos() {
   const [uploading, setUploading] = useState(false);
   const { addToast } = useNotification();
   const { t } = useLanguage();
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -51,7 +53,7 @@ export default function AdminPhotos() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm(t('confirmDelete') || 'Delete this photo?')) return;
+    if (!(await confirm(t('confirmDelete') || 'Delete this photo?', 'Confirm Delete', true))) return;
     try {
       await PhotosApi.delete(id);
       addToast(t('photoDeleted') || 'Photo deleted', 'success');

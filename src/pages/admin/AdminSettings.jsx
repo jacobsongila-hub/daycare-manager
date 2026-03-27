@@ -1,9 +1,11 @@
 import React from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function AdminSettings() {
+  const { addToast } = useNotification();
   const { lang, setLang, t } = useLanguage();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -77,9 +79,9 @@ export default function AdminSettings() {
                   try {
                     const data = JSON.parse(ev.target.result);
                     Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
-                    alert('Data imported successfully! Reloading...');
+                    addToast('Data imported successfully! Reloading...', 'success');
                     window.location.reload();
-                  } catch(err) { alert('Invalid JSON file'); }
+                  } catch(err) { addToast('Invalid JSON file', 'error'); }
                 };
                 reader.readAsText(file);
               };

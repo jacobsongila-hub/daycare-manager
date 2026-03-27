@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 
 // Layouts (found in components folder)
 import AdminLayout from './components/AdminLayout';
@@ -75,12 +76,12 @@ function PublicRoute({ children }) {
   if (loading) return <div className="splash"><div className="spinner"></div></div>;
   return user ? <RoleRouter /> : children;
 }
-
 export default function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <BrowserRouter>
+        <ConfirmProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
 
@@ -136,6 +137,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </BrowserRouter>
+        </ConfirmProvider>
       </NotificationProvider>
     </AuthProvider>
   );

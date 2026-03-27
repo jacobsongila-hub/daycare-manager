@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChildrenApi, AttendanceApi, DailyNotesApi, FamiliesApi } from '../../services/api';
 import { calculateAge } from '../../utils/formatters';
 
 export default function ChildDetail() {
+  const { addToast } = useNotification();
   const { id } = useParams();
   const navigate = useNavigate();
   const [child, setChild] = useState(null);
@@ -57,7 +59,7 @@ export default function ChildDetail() {
       await ChildrenApi.update(id, data);
       setChild({ ...child, ...data });
       setIsEditing(false);
-    } catch (err) { alert('Error updating child'); }
+    } catch (err) { addToast('Error updating child', 'error'); }
   };
 
   if (loading) return <div className="page-container"><div className="spinner"></div></div>;
@@ -116,15 +118,35 @@ export default function ChildDetail() {
              <p style={{ color: '#888', fontStyle: 'italic' }}>No family record linked.</p>
           )}
 
-          <h4 style={{ margin: '15px 0 10px 0', color: '#555' }}>Emergency Contacts</h4>
-          {(!child.emergencyContacts || child.emergencyContacts.length === 0) ? (
+          <h4 style={{ margin: '15px 0 10px 0', color: '#cf1322' }}>🚨 Emergency Contacts</h4>
+          {!family || (![1,2,3,4].some(i => family[`emergencyName${i}`]) && !family.emergencyContactName) ? (
             <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>None listed.</p>
           ) : (
-            child.emergencyContacts.map((ec, i) => (
-              <div key={i} style={{ padding: 10, background: '#f5f5f5', borderRadius: 8, marginBottom: 5 }}>
-                <strong>{ec.name}</strong> ({ec.relation}) - {ec.phone}
-              </div>
-            ))
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {family.emergencyContactName && !family.emergencyName1 && (
+                <div style={{ padding: '8px 12px', background: '#fff1f0', borderRadius: 8, borderLeft: '3px solid #f44336' }}>
+                  <strong>{family.emergencyContactName}</strong> - {family.emergencyContactPhone}
+                </div>
+              )}
+              {[1, 2, 3, 4].map(i => family[`emergencyName${i}`] && (
+                <div key={`em-${i}`} style={{ padding: '8px 12px', background: '#fff1f0', borderRadius: 8, borderLeft: '3px solid #f44336' }}>
+                  <strong>{family[`emergencyName${i}`]}</strong> ({family[`emergencyRelation${i}`]}) - {family[`emergencyPhone${i}`]}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <h4 style={{ margin: '15px 0 10px 0', color: '#1565c0' }}>🚙 Authorized Pick-ups</h4>
+          {!family || ![1,2,3,4].some(i => family[`pickupName${i}`]) ? (
+            <p style={{ color: '#888', fontStyle: 'italic', margin: 0 }}>None listed.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+              {[1, 2, 3, 4].map(i => family[`pickupName${i}`] && (
+                <div key={`pu-${i}`} style={{ padding: '8px 12px', background: '#e3f2fd', borderRadius: 8, borderLeft: '3px solid #2196f3' }}>
+                  <strong>{family[`pickupName${i}`]}</strong> ({family[`pickupRelation${i}`]}) - ID: {family[`pickupPhone${i}`]}
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

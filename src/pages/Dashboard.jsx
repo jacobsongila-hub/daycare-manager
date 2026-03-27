@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi, TimeEntriesApi } from '../services/api';
+import { useNotification } from '../context/NotificationContext';
+import { ChildrenApi, StaffApi, AttendanceApi, ShiftRequestsApi, AnnouncementsApi, TimeEntriesApi, RemindersApi } from '../services/api';
 
 const actionCards = [
   { to: '/admin/attendance', icon: '📝', label: 'attendance', color: '#4CAF50' },
@@ -25,6 +26,7 @@ function getDayGreeting(t) {
 }
 
 export default function Dashboard() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -33,17 +35,19 @@ export default function Dashboard() {
   const [announcements, setAnnouncements] = useState([]);
   const [birthdays, setBirthdays] = useState([]);
   const [pendingShifts, setPendingShifts] = useState(0);
+  const [reminders, setReminders] = useState([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [childrenRes, attRes, staffRes, shiftRes, annRes, timeRes] = await Promise.all([
+        const [childrenRes, attRes, staffRes, shiftRes, annRes, timeRes, remRes] = await Promise.all([
           ChildrenApi.getAll().catch(() => ({ data: [] })),
           AttendanceApi.getAll().catch(() => ({ data: [] })),
           StaffApi.getAll().catch(() => ({ data: [] })),
           ShiftRequestsApi.getAll().catch(() => ({ data: [] })),
           AnnouncementsApi.getAll().catch(() => ({ data: [] })),
-          TimeEntriesApi.getAll().catch(() => ({ data: [] }))
+          TimeEntriesApi.getAll().catch(() => ({ data: [] })),
+          RemindersApi.getAll().catch(() => ({ data: [] }))
         ]);
 
         const children = childrenRes.data || [];
@@ -51,6 +55,7 @@ export default function Dashboard() {
         const entries = timeRes.data || [];
         const shifts = shiftRes.data || [];
         const anns = annRes.data || [];
+        const rems = remRes.data || [];
 
         // Calculate today's stats
         const todayStr = new Date().toISOString().split('T')[0];
@@ -65,6 +70,7 @@ export default function Dashboard() {
         setStats({ present, absent, total: children.length, staffIn });
         setAnnouncements(anns.slice(0, 3));
         setPendingShifts(shifts.filter(s => s.status === 'Pending').length);
+        setReminders(rems.filter(r => !r.completed));
 
         // Find birthdays in the next 14 days
         const todayObj = new Date();
@@ -88,6 +94,17 @@ export default function Dashboard() {
     }
     loadData();
   }, []);
+
+  const handleCreateReminder = async (e) => {
+    e.preventDefault();
+    const data = { title: e.target.title.value, dueDate: e.target.dueDate.value };
+    try {
+      await RemindersApi.create(data);
+      e.target.reset();
+      const remRes = await RemindersApi.getAll();
+      setReminders((remRes.data || []).filter(r => !r.completed));
+    } catch (err) { addToast('Failed to add reminder', 'error'); }
+  };
 
   const today = new Date().toLocaleDateString('en-US', {
     weekday: 'long', month: 'long', day: 'numeric',
@@ -207,6 +224,32 @@ export default function Dashboard() {
           </div>
           <div style={{ width: '100%', background: '#eee', height: 10, borderRadius: 5, overflow: 'hidden' }}>
             <div style={{ width: `${attendanceProgress}%`, background: '#2196F3', height: '100%', transition: 'width 0.5s ease' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* QUICK REMINDERS */}
+      <div style={{ padding: '0 20px 20px' }}>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555', display: 'flex', justifyContent: 'space-between' }}>
+          <span>🔔 Quick Reminders</span>
+          <Link to="/admin/reminders" style={{ fontSize: '0.85rem', color: '#1565c0', textDecoration: 'none' }}>View All</Link>
+        </h3>
+        <div style={{ background: 'white', padding: 15, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+          <form onSubmit={handleCreateReminder} style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
+            <input name="title" placeholder="New Reminder..." required className="input" style={{ flex: 1, padding: '8px 12px' }} />
+            <input name="dueDate" type="date" required className="input" style={{ width: 130, padding: '8px 12px' }} defaultValue={new Date().toISOString().split('T')[0]} />
+            <button type="submit" className="btn btn-primary" style={{ padding: '8px 15px', background: '#009688' }}>➕</button>
+          </form>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {reminders.slice(0, 3).map(r => (
+              <div key={r._id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#e0f2f1', padding: '10px 15px', borderRadius: 8, borderLeft: '3px solid #009688' }}>
+                <strong style={{ fontSize: '0.9rem', color: '#004d40' }}>{r.title}</strong>
+                <span style={{ fontSize: '0.8rem', color: '#d32f2f', fontWeight: 600 }}>{r.dueDate}</span>
+              </div>
+            ))}
+            {reminders.length === 0 && <p style={{ margin: 0, fontSize: '0.85rem', color: '#888', fontStyle: 'italic' }}>No pending reminders!</p>}
+            {reminders.length > 3 && <div style={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', marginTop: 5 }}>+{reminders.length - 3} more pending tasks</div>}
           </div>
         </div>
       </div>

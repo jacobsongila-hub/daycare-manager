@@ -109,7 +109,9 @@ export default function ParentHome() {
                     {new Date(note.timestamp).toLocaleDateString()} {new Date(note.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
-                <p style={{ margin: 0, color: '#444', lineHeight: 1.5 }}>{note.note}</p>
+                <div style={{ background: '#fdfbfb', padding: '12px 15px', borderRadius: 8, marginTop: 10, border: '1px solid #f3e5f5' }}>
+                  <p style={{ margin: 0, color: '#444', lineHeight: 1.6, fontSize: '1.05rem', wordBreak: 'break-word' }}>{note.note}</p>
+                </div>
               </div>
             );
           })}

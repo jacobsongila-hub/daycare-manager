@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChildrenApi, AttendanceApi, markAttendance } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
+import ConfirmModal from '../../components/ConfirmModal';
 
 export default function AdminAttendance() {
   const [children, setChildren] = useState([]);
@@ -10,6 +11,7 @@ export default function AdminAttendance() {
   const [loading, setLoading] = useState(true);
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [reasonData, setReasonData] = useState({ childId: null, status: null });
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, status: null });
   const { addToast } = useNotification();
   const { t } = useLanguage();
 
@@ -62,8 +64,13 @@ export default function AdminAttendance() {
     }
   };
 
-  const markAll = async (status) => {
-    if (!window.confirm(t('confirmMarkAll') || `Mark all as ${status}?`)) return;
+  const requestMarkAll = (status) => {
+    setConfirmModal({ isOpen: true, status });
+  };
+
+  const handleConfirmMarkAll = async () => {
+    const status = confirmModal.status;
+    setConfirmModal({ isOpen: false, status: null });
     try {
       await Promise.all(children.map(child => {
         if (attendance[child._id]?.status === status) return Promise.resolve();
@@ -101,8 +108,8 @@ export default function AdminAttendance() {
 
       {/* Global Actions */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 25, flexWrap: 'wrap' }}>
-        <button className="btn btn-secondary" style={{ background: 'var(--success-light)', color: 'var(--success)', flex: 1, minWidth: 150 }} onClick={() => markAll('Present')}>✅ {t('markAllPresent')}</button>
-        <button className="btn btn-secondary" style={{ background: 'var(--danger-light)', color: 'var(--danger)', flex: 1, minWidth: 150 }} onClick={() => markAll('Absent')}>❌ {t('markAllAbsent')}</button>
+        <button className="btn btn-secondary" style={{ background: 'var(--success-light)', color: 'var(--success)', flex: 1, minWidth: 150 }} onClick={() => requestMarkAll('Present')}>✅ {t('markAllPresent')}</button>
+        <button className="btn btn-secondary" style={{ background: 'var(--danger-light)', color: 'var(--danger)', flex: 1, minWidth: 150 }} onClick={() => requestMarkAll('Absent')}>❌ {t('markAllAbsent')}</button>
         <button className="btn btn-secondary" style={{ flex: 0.5, minWidth: 100 }} onClick={loadData}>🔄 {t('refresh')}</button>
       </div>
 
@@ -189,6 +196,15 @@ export default function AdminAttendance() {
           </div>
         </div>
       )}
+
+      <ConfirmModal 
+        isOpen={confirmModal.isOpen} 
+        title={t('confirmMarkAll') || `Mark all as ${confirmModal.status}?`}
+        message={`Are you sure you want to mark all children as ${confirmModal.status} for ${date}?`}
+        onConfirm={handleConfirmMarkAll}
+        onCancel={() => setConfirmModal({ isOpen: false, status: null })}
+        confirmText="Yes, Mark All"
+      />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { CalendarEventsApi, ShiftRequestsApi, TimeEntriesApi, StaffApi } from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 export default function CalendarView({ readOnly = false }) {
   const [events, setEvents] = useState([]);
@@ -11,6 +12,7 @@ export default function CalendarView({ readOnly = false }) {
   const [loading, setLoading] = useState(true);
   const { addToast } = useNotification();
   const { t } = useLanguage();
+  const { confirm } = useConfirm();
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -89,7 +91,7 @@ export default function CalendarView({ readOnly = false }) {
 
   const handleDelete = async () => {
     if(!editEvent) return;
-    if(!window.confirm(t('confirmDelete') || 'Clear event for this day?')) return;
+    if(!(await confirm(t('confirmDelete') || 'Clear event for this day?', 'Confirm Delete', true))) return;
     try {
       await CalendarEventsApi.delete(editEvent._id);
       addToast(t('eventDeleted') || 'Event removed', 'success');

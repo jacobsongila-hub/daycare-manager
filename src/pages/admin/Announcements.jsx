@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { AnnouncementsApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function Announcements() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const { addToast } = useNotification();
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -39,7 +41,7 @@ export default function Announcements() {
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm('Delete this announcement?')) return;
+    if(!(await confirm('Delete this announcement?', 'Confirm Delete', true))) return;
     try {
       await AnnouncementsApi.delete(id);
       addToast('Announcement deleted', 'success');

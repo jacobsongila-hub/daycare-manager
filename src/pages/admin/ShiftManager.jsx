@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { ShiftRequestsApi, StaffApi } from '../../services/api';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function ShiftManager() {
+  const { addToast } = useNotification();
   const [requests, setRequests] = useState([]);
   const [staffInfo, setStaffInfo] = useState({});
   const [filter, setFilter] = useState('All');
   const [loading, setLoading] = useState(true);
+  const { confirm } = useConfirm();
 
   const loadData = async () => {
     setLoading(true);
@@ -32,15 +36,15 @@ export default function ShiftManager() {
     try {
       await ShiftRequestsApi.update(id, { status });
       loadData();
-    } catch (err) { alert('Error updating shift request'); }
+    } catch (err) { addToast('Error updating shift request', 'error'); }
   };
 
   const deleteRequest = async (id) => {
-    if(!window.confirm('Delete this request?')) return;
+    if(!(await confirm('Delete this request?', 'Confirm Delete', true))) return;
     try {
       await ShiftRequestsApi.delete(id);
       loadData();
-    } catch (err) { alert('Error deleting'); }
+    } catch (err) { addToast('Error deleting', 'error'); }
   };
 
   const filtered = requests.filter(r => filter === 'All' || r.status === filter);

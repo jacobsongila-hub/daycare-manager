@@ -50,7 +50,10 @@ export default function EmergencyContacts() {
       {loading ? <div className="spinner"></div> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 }}>
           {filteredKids.map(child => {
-            const fam = families[child.familyId];
+            const fam = families[child.familyId] || {};
+            const hasEmergency = [1,2,3,4].some(i => fam[`emergencyName${i}`]);
+            const hasPickups = [1,2,3,4].some(i => fam[`pickupName${i}`]);
+
             return (
               <div key={child._id} style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)', borderTop: '4px solid #f44336' }}>
                 <h3 style={{ margin: '0 0 15px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -59,7 +62,7 @@ export default function EmergencyContacts() {
 
                 {/* Primary Contacts */}
                 <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#666' }}>Primary Parents</h4>
-                {fam ? (
+                {fam._id ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 15 }}>
                      {fam.motherName && (
                        <a href={`tel:${fam.motherPhone}`} className="btn" style={{ display: 'flex', justifyContent: 'space-between', background: '#f5f5f5', border: '1px solid #ddd', textDecoration: 'none', color: '#333' }}>
@@ -79,16 +82,37 @@ export default function EmergencyContacts() {
                 )}
 
                 {/* Other Emergency Contacts */}
-                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#666' }}>Additional Contacts</h4>
-                {(!child.emergencyContacts || child.emergencyContacts.length === 0) ? (
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#666' }}>🚨 Emergency Contacts</h4>
+                {!hasEmergency && !fam.emergencyContactName ? (
+                  <p style={{ margin: '0 0 15px 0', fontSize: '0.9rem', color: '#999', fontStyle: 'italic' }}>None listed.</p>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 15 }}>
+                    {fam.emergencyContactName && !fam.emergencyName1 && (
+                       <a href={`tel:${fam.emergencyContactPhone}`} className="btn" style={{ display: 'flex', justifyContent: 'space-between', background: '#ffebee', border: '1px solid #ffcdd2', textDecoration: 'none', color: '#c62828' }}>
+                         <span>👤 {fam.emergencyContactName}</span>
+                         <span style={{ fontWeight: 'bold' }}>📞 Call</span>
+                       </a>
+                    )}
+                    {[1, 2, 3, 4].map(i => fam[`emergencyName${i}`] && (
+                       <a key={`em-${i}`} href={`tel:${fam[`emergencyPhone${i}`]}`} className="btn" style={{ display: 'flex', justifyContent: 'space-between', background: '#ffebee', border: '1px solid #ffcdd2', textDecoration: 'none', color: '#c62828' }}>
+                         <span>👤 {fam[`emergencyName${i}`]} ({fam[`emergencyRelation${i}`] || 'Rel'})</span>
+                         <span style={{ fontWeight: 'bold' }}>📞 Call</span>
+                       </a>
+                    ))}
+                  </div>
+                )}
+
+                {/* Authorized Pickups */}
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#666' }}>🚙 Authorized Pick-ups</h4>
+                {!hasPickups ? (
                   <p style={{ margin: 0, fontSize: '0.9rem', color: '#999', fontStyle: 'italic' }}>None listed.</p>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {child.emergencyContacts.map((ec, i) => (
-                       <a key={i} href={`tel:${ec.phone}`} className="btn" style={{ display: 'flex', justifyContent: 'space-between', background: '#ffebee', border: '1px solid #ffcdd2', textDecoration: 'none', color: '#c62828' }}>
-                         <span>👤 {ec.name} ({ec.relation})</span>
-                         <span style={{ fontWeight: 'bold' }}>📞 Call</span>
-                       </a>
+                    {[1, 2, 3, 4].map(i => fam[`pickupName${i}`] && (
+                       <div key={`pu-${i}`} className="btn" style={{ display: 'flex', justifyContent: 'space-between', background: '#e3f2fd', border: '1px solid #bbdefb', color: '#1565c0', cursor: 'default' }}>
+                         <span>👤 {fam[`pickupName${i}`]} ({fam[`pickupRelation${i}`]})</span>
+                         <span style={{ fontWeight: 'bold', fontSize: '0.85rem' }}>ID: {fam[`pickupPhone${i}`]}</span>
+                       </div>
                     ))}
                   </div>
                 )}

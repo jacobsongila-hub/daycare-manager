@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { useAuth } from '../../context/AuthContext';
 import { ChildrenApi, DailyNotesApi } from '../../services/api';
 
 export default function StaffNotes() {
+  const { addToast } = useNotification();
   const { user } = useAuth();
   const [children, setChildren] = useState([]);
   const [notes, setNotes] = useState([]);
@@ -41,7 +43,7 @@ export default function StaffNotes() {
       });
       setNoteText('');
       loadData();
-    } catch(err) { alert('Error saving note'); }
+    } catch(err) { addToast('Error saving note', 'error'); }
   };
 
   const getChildName = (id) => children.find(c => c._id === id)?.name || 'Unknown Child';
@@ -61,14 +63,29 @@ export default function StaffNotes() {
           >
             {children.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
           </select>
-          <textarea 
-            className="input" 
-            rows="4" 
-            placeholder="What did they do today? (e.g. Ate all their lunch, napped for 2 hours...)"
-            value={noteText}
-            onChange={e => setNoteText(e.target.value)}
-            required
-          ></textarea>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <textarea 
+              className="input" 
+              rows="4" 
+              placeholder="What did they do today? (e.g. Ate all their lunch, napped for 2 hours...)"
+              value={noteText}
+              onChange={e => setNoteText(e.target.value)}
+              style={{ paddingBottom: 40, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
+              required
+            ></textarea>
+            <div style={{ padding: '8px 10px', background: '#f5f5f5', borderBottomLeftRadius: 8, borderBottomRightRadius: 8, border: '1px solid var(--border)', borderTop: 'none', display: 'flex', gap: 10, marginTop: -6, overflowX: 'auto' }}>
+              {['😊','😍','😴','🍼','💩','🤒','🎨','🎶','🍎','🏆'].map(emoji => (
+                <button 
+                  key={emoji}
+                  type="button"
+                  onClick={() => setNoteText(prev => prev + emoji)}
+                  style={{ background: 'white', border: '1px solid #ddd', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.2rem', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
           <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Save Note</button>
         </form>
       </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNotification } from '../../context/NotificationContext';
 import { RemindersApi } from '../../services/api';
 
 export default function Reminders() {
+  const { addToast } = useNotification();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,21 +29,21 @@ export default function Reminders() {
       await RemindersApi.create(data);
       e.target.reset();
       loadData();
-    } catch(err) { alert('Error creating reminder'); }
+    } catch(err) { addToast('Error creating reminder', 'error'); }
   };
 
   const toggleComplete = async (reminder) => {
     try {
       await RemindersApi.update(reminder._id, { completed: !reminder.completed });
       loadData();
-    } catch(err) { alert('Status update failed'); }
+    } catch(err) { addToast('Status update failed', 'error'); }
   };
 
   const handleDelete = async (id) => {
     try {
       await RemindersApi.delete(id);
       loadData();
-    } catch(err) { alert('Delete failed'); }
+    } catch(err) { addToast('Delete failed', 'error'); }
   };
 
   const pending = reminders.filter(r => !r.completed);

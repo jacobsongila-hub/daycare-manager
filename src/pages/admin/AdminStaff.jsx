@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { StaffApi, TimeEntriesApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useConfirm } from '../../context/ConfirmContext';
 
 export default function AdminStaff() {
   const [staff, setStaff] = useState([]);
@@ -10,6 +11,7 @@ export default function AdminStaff() {
   const [showClockedInOnly, setShowClockedInOnly] = useState(false);
   const { addToast } = useNotification();
   const { t } = useLanguage();
+  const { confirm } = useConfirm();
 
   // Modal
   const [showModal, setShowModal] = useState(false);
@@ -65,7 +67,7 @@ export default function AdminStaff() {
   };
 
   const handleDelete = async (id) => {
-    if(!window.confirm(t('confirmDelete') || 'Delete this staff member?')) return;
+    if(!(await confirm(t('confirmDelete') || 'Delete this staff member?', 'Confirm Delete', true))) return;
     try {
       await StaffApi.delete(id);
       addToast(t('staffDeleted') || 'Staff profile deleted', 'success');
