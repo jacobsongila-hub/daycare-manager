@@ -27,15 +27,15 @@ export default function AdminSettings() {
 
         {/* User Management Link */}
         <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#8e24aa' }}>👥 User Management</h3>
-          <p style={{ color: '#666', marginBottom: 15 }}>Manage Staff and Parent accounts, assign roles, and suspend users.</p>
-          <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>Go to User Management ➔</button>
+          <h3 style={{ margin: '0 0 15px 0', color: '#8e24aa' }}>👥 {t('userManagement') || 'User Management'}</h3>
+          <p style={{ color: '#666', marginBottom: 15 }}>{t('userManagementDesc')}</p>
+          <button className="btn btn-primary" onClick={() => navigate('/admin/users')}>{t('goToUserManagement')} ➔</button>
         </div>
 
         {/* Language Settings */}
         <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#43a047' }}>🌐 Language Section</h3>
-          <p style={{ color: '#666', marginBottom: 15 }}>Choose the application language. Hebrew will automatically switch the layout to RTL.</p>
+          <h3 style={{ margin: '0 0 15px 0', color: '#43a047' }}>🌐 {t('languageSection')}</h3>
+          <p style={{ color: '#666', marginBottom: 15 }}>{t('languageDesc')}</p>
           
           <div style={{ display: 'flex', gap: 10 }}>
             <button 
@@ -57,8 +57,8 @@ export default function AdminSettings() {
 
         {/* Data Migration */}
         <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-          <h3 style={{ margin: '0 0 15px 0', color: '#f44336' }}>📦 Data Migration</h3>
-          <p style={{ color: '#666', marginBottom: 15 }}>Import or export all daycare data as JSON.</p>
+          <h3 style={{ margin: '0 0 15px 0', color: '#f44336' }}>📦 {t('dataMigration')}</h3>
+          <p style={{ color: '#666', marginBottom: 15 }}>{t('dataMigrationDesc')}</p>
           <div style={{ display: 'flex', gap: 10 }}>
             <button className="btn" onClick={() => {
               const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(localStorage));
@@ -66,7 +66,7 @@ export default function AdminSettings() {
               a.href = dataStr;
               a.download = 'daycare_backup.json';
               a.click();
-            }}>📥 Export Data</button>
+            }}>📥 {t('exportData')}</button>
             <button className="btn" onClick={() => {
               const input = document.createElement('input');
               input.type = 'file';
@@ -79,14 +79,14 @@ export default function AdminSettings() {
                   try {
                     const data = JSON.parse(ev.target.result);
                     Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
-                    addToast('Data imported successfully! Reloading...', 'success');
+                    addToast(t('dataImported') || 'Data imported successfully! Reloading...', 'success');
                     window.location.reload();
-                  } catch(err) { addToast('Invalid JSON file', 'error'); }
+                  } catch(err) { addToast(t('invalidFile') || 'Invalid JSON file', 'error'); }
                 };
                 reader.readAsText(file);
               };
               input.click();
-            }}>📤 Import Data</button>
+            }}>📤 {t('importData')}</button>
           </div>
         </div>
 

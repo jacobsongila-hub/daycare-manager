@@ -10,6 +10,8 @@ export default function AdminPhotos() {
   const [loading, setLoading] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [base64File, setBase64File] = useState('');
   const { addToast } = useNotification();
   const { t } = useLanguage();
   const { confirm } = useConfirm();
@@ -32,18 +34,37 @@ export default function AdminPhotos() {
 
   useEffect(() => { loadData(); }, []);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+        setBase64File(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleUpload = async (e) => {
     e.preventDefault();
+    if (!base64File) return addToast('Please select a photo', 'error');
+    
     setUploading(true);
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
     const selectedChildIds = Array.from(e.target.childIds.selectedOptions).map(o => o.value);
+    
+    data.url = base64File;
     data.childIds = selectedChildIds;
     data.date = new Date().toISOString().split('T')[0];
+    
     try {
       await PhotosApi.create(data);
       addToast(t('photoUploaded') || 'Photo uploaded successfuly', 'success');
       setShowUploadModal(false);
+      setPreviewUrl('');
+      setBase64File('');
       loadData();
     } catch (err) { 
       addToast(t('uploadFailed') || 'Upload failed', 'error'); 
@@ -118,8 +139,13 @@ export default function AdminPhotos() {
                 <input name="title" required className="input" autoFocus />
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: 5 }}>URL</label>
-                <input name="url" required className="input" />
+                <label style={{ display: 'block', marginBottom: 5 }}>{t('photo') || 'Photo'}</label>
+                <input type="file" accept="image/*" required className="input" onChange={handleFileChange} />
+                {previewUrl && (
+                  <div style={{ marginTop: 10, textAlign: 'center' }}>
+                    <img src={previewUrl} alt="Preview" style={{ maxWidth: '100%', maxHeight: 150, borderRadius: 8 }} />
+                  </div>
+                )}
               </div>
               <div>
                 <label style={{ display: 'block', marginBottom: 8, fontSize: '0.9rem', fontWeight: 'bold' }}>{t('tagChildren')}:</label>

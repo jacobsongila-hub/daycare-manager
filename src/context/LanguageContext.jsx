@@ -138,6 +138,14 @@ const translations = {
     deleteFailed: 'Delete failed',
     noEntries: 'No entries yet',
     writeQuickNotes: 'Write quick daily notes for children.',
+    userManagementDesc: 'Manage Staff and Parent accounts, assign roles, and suspend users.',
+    goToUserManagement: 'Go to User Management',
+    languageSection: 'Language Section',
+    languageDesc: 'Choose the application language. Hebrew will automatically switch the layout to RTL.',
+    dataMigration: 'Data Migration',
+    dataMigrationDesc: 'Import or export all daycare data as .JSON.',
+    importData: 'Import Data',
+    exportData: 'Export Data',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -274,6 +282,14 @@ const translations = {
     deleteFailed: 'המחיקה נכשלה',
     noEntries: 'אין רשומות עדיין',
     writeQuickNotes: 'כתוב הערות יומיות מהירות לילדים.',
+    userManagementDesc: 'ניהול חשבונות צוות והורים, הקצאת תפקידים והשעיית משתמשים.',
+    goToUserManagement: 'עבור לניהול משתמשים',
+    languageSection: 'אזור שפה',
+    languageDesc: 'בחר את שפת האפליקציה. מעבר לעברית ישנה את כיוון התצוגה לימין-לשמאל.',
+    dataMigration: 'העברת נתונים',
+    dataMigrationDesc: 'ייבוא או ייצוא כל נתוני הפעוטון כקובץ JSON.',
+    importData: 'ייבוא נתונים',
+    exportData: 'ייצוא נתונים',
   }
 };
 
