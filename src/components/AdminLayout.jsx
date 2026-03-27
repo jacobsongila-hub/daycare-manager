@@ -24,7 +24,8 @@ export default function AdminLayout() {
         <div className="header-left">
           <span className="header-logo">👑</span>
           <div>
-            <h1 style={{ fontSize: 16 }}>Daycare Manager</h1>
+              <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>{t('dashboard')}</h1>
+              <span style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', marginLeft: 10 }}>v1.1.0-PROXY-FIX</span>
             <div style={{ fontSize: 10, display: 'flex', gap: 5, alignItems: 'center', opacity: 0.8 }}>
                <span style={{ fontWeight: 700 }}>Owner Portal</span>
                <span style={{ opacity: 0.6 }}>• v1.1.0-POLISH</span>
