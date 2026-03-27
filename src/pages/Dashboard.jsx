@@ -113,6 +113,12 @@ export default function Dashboard() {
   const attendanceProgress = stats.total > 0 ? Math.round(((stats.present + stats.absent) / stats.total) * 100) : 0;
   const ratio = stats.staffIn > 0 ? Math.round(stats.present / stats.staffIn) : stats.present;
 
+  const getTranslatedProgressMessage = () => {
+    const unmarked = stats.total - (stats.present + stats.absent);
+    if (lang === 'he') return `⚠️ התראה: ${unmarked} ${t('childrenNeedAttendance')}`;
+    return `⚠️ ${t('unmarkedAlert')}: ${unmarked} ${t('childrenNeedAttendance')}`;
+  };
+
   return (
     <div style={{ paddingBottom: 80 }}>
       {/* HEADER */}
@@ -189,14 +195,14 @@ export default function Dashboard() {
         )}
         {attendanceProgress < 100 && (
           <div style={{ background: '#ffebee', borderLeft: '4px solid #f44336', padding: 15, borderRadius: 8 }}>
-            ⚠️ <strong>{t('unmarkedAlert')}:</strong> {stats.total - (stats.present + stats.absent)} {t('childrenNeedAttendance') || 'children unmarked'}
+            {getTranslatedProgressMessage()}
           </div>
         )}
       </div>
 
       {/* QUICK STATS */}
       <div style={{ padding: '20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555' }}>Overview</h3>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555' }}>{t('overview')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
           <div style={{ background: 'white', padding: 20, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)', textAlign: 'center' }}>
             <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#4CAF50' }}>{stats.present}</div>
@@ -231,12 +237,12 @@ export default function Dashboard() {
       {/* QUICK REMINDERS */}
       <div style={{ padding: '0 20px 20px' }}>
         <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555', display: 'flex', justifyContent: 'space-between' }}>
-          <span>🔔 Quick Reminders</span>
-          <Link to="/admin/reminders" style={{ fontSize: '0.85rem', color: '#1565c0', textDecoration: 'none' }}>View All</Link>
+          <span>🔔 {t('quickReminders')}</span>
+          <Link to="/admin/reminders" style={{ fontSize: '0.85rem', color: '#1565c0', textDecoration: 'none' }}>{t('viewAll')}</Link>
         </h3>
         <div style={{ background: 'white', padding: 15, borderRadius: 12, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
           <form onSubmit={handleCreateReminder} style={{ display: 'flex', gap: 10, marginBottom: 15 }}>
-            <input name="title" placeholder="New Reminder..." required className="input" style={{ flex: 1, padding: '8px 12px' }} />
+            <input name="title" placeholder={t('newNote') + '...'} required className="input" style={{ flex: 1, padding: '8px 12px' }} />
             <input name="dueDate" type="date" required className="input" style={{ width: 130, padding: '8px 12px' }} defaultValue={new Date().toISOString().split('T')[0]} />
             <button type="submit" className="btn btn-primary" style={{ padding: '8px 15px', background: '#009688' }}>➕</button>
           </form>
@@ -248,15 +254,15 @@ export default function Dashboard() {
                 <span style={{ fontSize: '0.8rem', color: '#d32f2f', fontWeight: 600 }}>{r.dueDate}</span>
               </div>
             ))}
-            {reminders.length === 0 && <p style={{ margin: 0, fontSize: '0.85rem', color: '#888', fontStyle: 'italic' }}>No pending reminders!</p>}
-            {reminders.length > 3 && <div style={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', marginTop: 5 }}>+{reminders.length - 3} more pending tasks</div>}
+            {reminders.length === 0 && <p style={{ margin: 0, fontSize: '0.85rem', color: '#888', fontStyle: 'italic' }}>{t('noEntries')}</p>}
+            {reminders.length > 3 && <div style={{ fontSize: '0.8rem', color: '#888', textAlign: 'center', marginTop: 5 }}>+{reminders.length - 3} {t('pending')}</div>}
           </div>
         </div>
       </div>
 
       {/* QUICK ACTIONS */}
       <div style={{ padding: '0 20px 20px' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555' }}>Quick Actions</h3>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '1.1rem', color: '#555' }}>{t('quickActions')}</h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '15px 10px' }}>
           {actionCards.map((card, idx) => (
             <Link key={idx} to={card.to} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
