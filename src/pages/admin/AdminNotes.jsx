@@ -79,18 +79,25 @@ export default function AdminNotes() {
               {moods.map(m => (
                 <button 
                   key={m.icon} 
+                  type="button"
                   onClick={() => setMood(m.icon)}
                   style={{ 
-                    background: mood === m.icon ? 'var(--primary-light)' : 'white', 
-                    border: mood === m.icon ? '2px solid var(--primary)' : '1px solid #ddd', 
-                    padding: '10px 15px', 
-                    borderRadius: 12, 
+                    background: mood === m.icon ? '#fef3c7' : '#f8f9fa', 
+                    border: mood === m.icon ? '2px solid #fbbf24' : '1px solid #e5e7eb', 
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '16px', 
                     cursor: 'pointer', 
-                    fontSize: '1.5rem',
-                    transition: 'transform 0.2s, background 0.2s',
-                    transform: mood === m.icon ? 'scale(1.1)' : 'scale(1)'
+                    fontSize: '1.8rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                    transform: mood === m.icon ? 'scale(1.15) translateY(-5px)' : 'scale(1)',
+                    boxShadow: mood === m.icon ? '0 8px 15px rgba(251, 191, 36, 0.2)' : '0 2px 5px rgba(0,0,0,0.02)'
                   }}
                   title={m.label}
+                  className="mood-button"
                 >
                   {m.icon}
                 </button>

@@ -112,7 +112,9 @@ export default function Dashboard() {
 
   const handleCreateReminder = async (e) => {
     e.preventDefault();
-    const data = { title: e.target.title.value, dueDate: e.target.dueDate.value };
+    const title = e.target.title.value;
+    const dueDate = e.target.dueDate?.value || new Date().toISOString().split('T')[0];
+    const data = { title, dueDate };
     try {
       await RemindersApi.create(data);
       e.target.reset();

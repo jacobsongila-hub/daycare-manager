@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ChildrenApi, FamiliesApi } from '../../services/api';
+import { useLanguage } from '../../context/LanguageContext';
 
 export default function EmergencyContacts() {
+  const { t, lang } = useLanguage();
   const [children, setChildren] = useState([]);
   const [families, setFamilies] = useState({});
   const [filter, setFilter] = useState('');
@@ -69,7 +71,7 @@ export default function EmergencyContacts() {
 
                 <div style={{ padding: '20px' }}>
                   {/* Primary Contacts */}
-                  <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>Primary Guardiens</h4>
+                  <h4 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#888', textTransform: 'uppercase', letterSpacing: 1 }}>{t('primaryGuardians') || 'Primary Guardians'}</h4>
                   {fam._id ? (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
                        {fam.motherName && (
