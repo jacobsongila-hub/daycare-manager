@@ -28,10 +28,10 @@ export function AuthProvider({ children }) {
       if (err.code === 'ERR_NETWORK' || err.message === 'Network Error') {
         console.warn('Backend is unreachable. Falling back to offline demo mode.');
         
-        let role = 'admin';
+        let role = 'parent';
         const lowerEmail = email.toLowerCase();
-        if (lowerEmail.includes('staff')) role = 'staff';
-        if (lowerEmail.includes('parent')) role = 'parent';
+        if (lowerEmail.includes('admin') || lowerEmail.includes('owner')) role = 'admin';
+        if (lowerEmail.includes('staff') || lowerEmail.includes('teacher')) role = 'staff';
         
         const mockUser = {
           id: 'demo-' + Date.now(),

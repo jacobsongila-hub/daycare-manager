@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { StaffApi, TimeEntriesApi } from '../../services/api';
+import { StaffApi, TimeEntriesApi, register } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useConfirm } from '../../context/ConfirmContext';
@@ -45,8 +44,26 @@ export default function AdminStaff() {
         await StaffApi.update(editStaff._id, data);
         addToast(t('staffUpdated') || 'Staff profile updated', 'success');
       } else {
-        await StaffApi.create(data);
-        addToast(t('staffAdded') || 'New staff member added', 'success');
+        // Create Staff Record
+        const res = await StaffApi.create(data);
+        const newStaff = res.data;
+
+        // Auto-create login account if password provided
+        if (data.password && data.email) {
+          try {
+            await register({
+              name: data.name,
+              email: data.email,
+              password: data.password,
+              role: 'staff'
+            });
+            addToast('Login account created for staff', 'success');
+          } catch (regErr) {
+            addToast('Staff added but failed to create login account', 'warning');
+          }
+        } else {
+          addToast(t('staffAdded') || 'New staff member added', 'success');
+        }
       }
       setShowModal(false);
       loadData();
@@ -169,6 +186,14 @@ export default function AdminStaff() {
                 <label className="form-label" style={{ fontSize: '0.8rem', color: '#666' }}>{t('joinDate') || 'Join Date'}</label>
                 <input name="joinDate" defaultValue={editStaff?.joinDate} type="date" className="input" />
               </div>
+
+              {!editStaff && (
+                <div style={{ background: '#f5f7f9', padding: '15px', borderRadius: '12px', marginTop: '10px' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>🔑 {t('loginAccount') || 'Login Account'}</h4>
+                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>If you provide a password, an account will be created automatically.</p>
+                  <input name="password" type="password" placeholder={t('password') || "Password (min. 6 chars)"} className="input" style={{ background: 'white' }} minLength={6} />
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" className="btn" onClick={() => setShowModal(false)}>{t('cancel')}</button>
                 <button type="submit" className="btn btn-primary">{t('save')}</button>

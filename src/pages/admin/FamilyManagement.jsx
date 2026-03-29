@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { FamiliesApi, ChildrenApi } from '../../services/api';
+import { FamiliesApi, ChildrenApi, register } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { calculateAge } from '../../utils/formatters';
 import { useLanguage } from '../../context/LanguageContext';
@@ -53,8 +52,25 @@ export default function FamilyManagement() {
         await FamiliesApi.update(editFamily._id, data);
         addToast('Family updated successfully', 'success');
       } else {
-        await FamiliesApi.create(data);
-        addToast('New family added', 'success');
+        const res = await FamiliesApi.create(data);
+        const newFam = res.data;
+
+        // Auto-create login account if email/password provided
+        if (data.loginEmail && data.password) {
+          try {
+            await register({
+              name: `${data.familyName} Parent`,
+              email: data.loginEmail,
+              password: data.password,
+              role: 'parent'
+            });
+            addToast('Login account created for parent', 'success');
+          } catch (regErr) {
+            addToast('Family added but failed to create login account', 'warning');
+          }
+        } else {
+          addToast('New family added', 'success');
+        }
       }
       setShowFamilyModal(false);
       loadData();
@@ -235,6 +251,15 @@ export default function FamilyManagement() {
                   <input name="fatherPhone" defaultValue={editFamily?.fatherPhone} placeholder="050-..." className="input" />
                 </div>
               </div>
+
+              {!editFamily && (
+                <div style={{ background: '#f5f7f9', padding: '15px', borderRadius: '12px', marginTop: '10px' }}>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>🔑 {t('loginAccount') || 'Parent Login Account'}</h4>
+                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>Provide an email and password to enable parent portal access.</p>
+                  <input name="loginEmail" type="email" placeholder={t('email') || "Email"} className="input" style={{ background: 'white', marginBottom: 10 }} />
+                  <input name="password" type="password" placeholder={t('password') || "Password (min. 6 chars)"} className="input" style={{ background: 'white' }} minLength={6} />
+                </div>
+              )}
               <div style={{ borderTop: '1px solid var(--border)', paddingTop: 15 }}>
                 <h4 className="section-label" style={{ marginBottom: 12 }}>🚨 {t('emergency')} (Up to 4)</h4>
                 {[1, 2, 3, 4].map(i => (

@@ -61,13 +61,16 @@ function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="splash"><div className="spinner"></div></div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (allowedRoles) {
     const role = (user.role || '').toLowerCase();
-    const allowed = allowedRoles.some(r => role === r);
-    if (!allowed && role !== 'admin' && role !== 'owner') {
+    const isAllowed = allowedRoles.some(r => role === r);
+    const isAdmin = role === 'admin' || role === 'owner';
+
+    if (!isAllowed && !isAdmin) {
+      // Authenticated but not authorized for this specific route
+      if (role === 'staff' || role === 'employee') return <Navigate to="/staff" replace />;
+      if (role === 'parent') return <Navigate to="/parent" replace />;
       return <Navigate to="/login" replace />;
     }
-  }
   return children;
 }
 
