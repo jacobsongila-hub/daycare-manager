@@ -3,20 +3,29 @@ import { StaffApi, TimeEntriesApi, clockIn, clockOut } from '../services/api';
 import { useNotification } from '../context/NotificationContext';
 import { useLanguage } from '../context/LanguageContext';
 
+function isValidDate(d) {
+  return d instanceof Date && !isNaN(d);
+}
+
 function formatTime(iso, lang = 'en') {
   if (!iso) return '—';
-  return new Date(iso).toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' });
+  const d = new Date(iso);
+  if (!isValidDate(d)) return '—';
+  return d.toLocaleTimeString(lang === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDate(iso, lang = 'en') {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' });
+  const d = new Date(iso);
+  if (!isValidDate(d)) return '';
+  return d.toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', { month: 'short', day: 'numeric' });
 }
 
 function calculateDiff(start, end) {
   if (!start || !end) return 0;
   const s = new Date(start);
   const e = new Date(end);
+  if (!isValidDate(s) || !isValidDate(e)) return 0;
   return (e - s) / (1000 * 60 * 60);
 }
 
@@ -314,7 +323,9 @@ export default function TimeTracking() {
 function staffEntriesByMonth(entries) {
   const groups = {};
   entries.forEach(e => {
+    if (!e.clockIn) return;
     const d = new Date(e.clockIn);
+    if (!isValidDate(d)) return;
     const month = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     if (!groups[month]) groups[month] = { month, entries: [], totalHours: 0 };
     groups[month].entries.push(e);

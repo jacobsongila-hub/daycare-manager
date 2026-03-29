@@ -70,7 +70,10 @@ export default function StaffDocs() {
           <input name="title" placeholder="Document Title (e.g., CPR Certificate)" required className="input" />
           <input name="category" placeholder="Category (e.g., Certifications, ID, Medical)" required className="input" />
           <input type="file" required className="input" style={{ background: '#f5f5f5', padding: 10 }} />
-          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }}>Upload Document</button>
+          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', padding: '12px 25px', borderRadius: 12, fontWeight: 800 }}>
+            📤 Upload to Office
+          </button>
+          <p style={{ fontSize: '0.8rem', color: '#888', margin: 0 }}>Documents uploaded here (like certificates or IDs) are visible to the administration.</p>
         </form>
       </div>
 

@@ -12,6 +12,7 @@ export default function AdminDocs() {
   const [families, setFamilies] = useState([]);
   const [visibility, setVisibility] = useState('general');
   const [selectedFamilyId, setSelectedFamilyId] = useState('');
+  const [activeTab, setActiveTab] = useState('all'); // 'all' | 'sent' | 'received'
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const { confirm } = useConfirm();
@@ -136,45 +137,62 @@ export default function AdminDocs() {
         </form>
       </div>
 
-      <h3 style={{ margin: '0 0 15px 0', fontSize: '1.3rem', color: '#444' }}>{t('storedFiles') || 'Stored Files'}</h3>
+      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
+        <button onClick={() => setActiveTab('all')} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: activeTab === 'all' ? '#00838f' : '#fff', color: activeTab === 'all' ? 'white' : '#666', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>{t('allDocs') || 'All Documents'}</button>
+        <button onClick={() => setActiveTab('sent')} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: activeTab === 'sent' ? '#00838f' : '#fff', color: activeTab === 'sent' ? 'white' : '#666', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>{t('sentDocs') || 'Sent by Me'}</button>
+        <button onClick={() => setActiveTab('received')} style={{ flex: 1, padding: '12px', borderRadius: 12, border: 'none', background: activeTab === 'received' ? '#00838f' : '#fff', color: activeTab === 'received' ? 'white' : '#666', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>{t('receivedDocs') || 'Received'}</button>
+      </div>
+
+      <h3 style={{ margin: '0 0 15px 0', fontSize: '1.3rem', color: '#444' }}>
+        {activeTab === 'received' ? '📥 Files from Parents & Staff' : (activeTab === 'sent' ? '📤 My Uploaded Files' : '📚 All Files')}
+      </h3>
       {loading ? <div className="spinner"></div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-          {docs.length === 0 ? (
+          {docs.filter(d => {
+            if (activeTab === 'sent') return !d.type || !d.type.includes('Document'); // Simple heuristic: Admin uploads don't have 'Staff Document' type
+            if (activeTab === 'received') return d.type && d.type.includes('Document');
+            return true;
+          }).length === 0 ? (
             <div className="empty-state" style={{ padding: '60px', background: 'white', borderRadius: 16 }}>
-              <div style={{ fontSize: '3rem', marginBottom: 10 }}>📥</div>
-              <p style={{ color: '#888', fontWeight: 600 }}>No documents have been uploaded yet.</p>
+              <div style={{ fontSize: '3rem', marginBottom: 10 }}>{activeTab === 'received' ? '📥' : '📤'}</div>
+              <p style={{ color: '#888', fontWeight: 600 }}>{activeTab === 'received' ? 'No documents received yet.' : 'No documents uploaded yet.'}</p>
             </div>
-          ) : docs.map(doc => {
+          ) : docs.filter(d => {
+            if (activeTab === 'sent') return !d.type || !d.type.includes('Document');
+            if (activeTab === 'received') return d.type && d.type.includes('Document');
+            return true;
+          }).map(doc => {
             const isPrivate = doc.ownerId?.startsWith('family-');
+            const isReceived = doc.type && (doc.type.includes('Staff') || doc.type.includes('Family'));
             const familyId = isPrivate ? doc.ownerId.replace('family-', '') : null;
-            const targetFamily = families.find(f => f._id === familyId);
+            const targetFamily = families.find(f => f._id === familyId || f._id === doc.ownerId);
             
             return (
               <div key={doc._id} style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'space-between', 
-                background: 'white', 
+                background: isReceived ? '#f0f4f8' : 'white', 
                 padding: '20px', 
                 borderRadius: 15, 
                 boxShadow: '0 4px 6px rgba(0,0,0,0.03)', 
-                borderLeft: `6px solid ${isPrivate ? '#673ab7' : (doc.ownerId === 'general' ? '#4caf50' : '#ff9800')}` 
+                borderLeft: `6px solid ${isReceived ? '#ff9800' : (isPrivate ? '#673ab7' : '#4caf50')}` 
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                  <div style={{ fontSize: '2.5rem', background: '#f0f0f0', width: 60, height: 60, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>📄</div>
+                  <div style={{ fontSize: '2.5rem', background: 'white', width: 60, height: 60, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{isReceived ? '📥' : '📄'}</div>
                   <div>
                     <h4 style={{ margin: '0 0 5px 0', fontSize: '1.15rem', color: '#1a1a1a' }}>{doc.title}</h4>
                     <div style={{ fontSize: '0.85rem', color: '#666', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                       <span style={{ background: '#eee', padding: '2px 8px', borderRadius: 4 }}>📅 {new Date(doc.createdAt).toLocaleDateString()}</span>
                       <span style={{ background: '#eee', padding: '2px 8px', borderRadius: 4 }}>🏷️ {doc.category}</span>
                       <span style={{ 
-                        background: isPrivate ? '#f3e5f5' : (doc.ownerId === 'general' ? '#e8f5e9' : '#fff3e0'),
-                        color: isPrivate ? '#6a1b9a' : (doc.ownerId === 'general' ? '#2e7d32' : '#e65100'),
+                        background: isReceived ? '#fff3e0' : (isPrivate ? '#f3e5f5' : '#e8f5e9'),
+                        color: isReceived ? '#e65100' : (isPrivate ? '#6a1b9a' : '#2e7d32'),
                         padding: '2px 8px', 
                         borderRadius: 4,
                         fontWeight: 700
                       }}>
-                        👁️ {isPrivate ? `${t('privateTo') || 'Private to'}: ${targetFamily?.familyName || 'Family'}` : (doc.ownerId === 'general' ? t('everyone') || 'Everyone' : t('staffOnly') || 'Staff Only')}
+                        {isReceived ? `FROM: ${targetFamily?.familyName || 'Staff/Parent'}` : (isPrivate ? `${t('privateTo') || 'Private to'}: ${targetFamily?.familyName || 'Family'}` : t('everyone') || 'Everyone')}
                       </span>
                     </div>
                   </div>

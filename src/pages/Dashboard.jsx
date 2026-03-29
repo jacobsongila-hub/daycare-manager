@@ -139,89 +139,75 @@ export default function Dashboard() {
 
   return (
     <div style={{ paddingBottom: 80 }}>
+      {/* GLOBAL ANNOUNCEMENT BANNER (STICKY TOP) */}
+      {(announcements.length > 0 || birthdays.length > 0 || anniversaries.length > 0) ? (
+        <div style={{ 
+          background: 'linear-gradient(90deg, #6200ea, #d500f9)', 
+          color: 'white', 
+          padding: '12px 20px', 
+          textAlign: 'center', 
+          fontSize: '0.95rem',
+          fontWeight: 700,
+          boxShadow: '0 4px 12px rgba(98, 0, 234, 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 15,
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}>
+          {birthdays.length > 0 && (
+            <span>🎂 {t('birthdayAlert') || 'Birthday Today'}: {birthdays[0].name}!</span>
+          )}
+          {anniversaries.length > 0 && (
+            <span>🎉 {t('anniversaryAlert') || 'Work Anniversary'}: {anniversaries[0].name}!</span>
+          )}
+          {announcements.length > 0 && !birthdays.length && !anniversaries.length && (
+            <span>📢 {announcements[0].title}</span>
+          )}
+          <button 
+            onClick={() => navigate('/admin/announcements')}
+            style={{ background: 'rgba(255,255,255,0.25)', border: 'none', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: '0.8rem', cursor: 'pointer', fontWeight: 800 }}
+          >
+            {t('view') || 'View'}
+          </button>
+        </div>
+      ) : (
+        <div style={{ 
+          background: 'linear-gradient(90deg, #1565c0, #1e88e5)', 
+          color: 'white', 
+          padding: '10px 20px', 
+          textAlign: 'center', 
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          position: 'sticky',
+          top: 0,
+          zIndex: 100
+        }}>
+          ✨ {t('welcomeMessage') || 'Welcome to Little Ones Management Portal!'}
+        </div>
+      )}
+
       {/* HEADER */}
-      <div style={{ padding: '20px', background: 'linear-gradient(135deg, #1565c0, #2196f3)', color:'white', borderRadius: '0 0 20px 20px', marginBottom: 20 }}>
+      <div style={{ padding: '20px', background: 'white', color:'#333', borderBottom: '1px solid #eee', marginBottom: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
-            <div style={{ fontSize: '1.2rem', opacity: 0.9 }}>{getDayGreeting(t)},</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{user?.name || 'Admin'}</div>
-            <div style={{ fontSize: '0.9rem', opacity: 0.8, marginTop: 5 }}>{today}</div>
+            <div style={{ fontSize: '1rem', color: '#666', fontWeight: 500 }}>{getDayGreeting(t)},</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1a1a1a' }}>{user?.name || 'Admin'}</div>
+            <div style={{ fontSize: '0.85rem', color: '#888', marginTop: 4 }}>{today}</div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '10px', borderRadius: '50%', cursor: 'pointer' }} onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>
+            <button style={{ background: '#f5f7f9', border: 'none', color: '#666', padding: '12px', borderRadius: '15px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>
               🔗
             </button>
-            <button style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '10px', borderRadius: '50%', cursor: 'pointer' }} onClick={() => navigate('/admin/settings')}>
+            <button style={{ background: '#f5f7f9', border: 'none', color: '#666', padding: '12px', borderRadius: '15px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} onClick={() => navigate('/admin/settings')}>
               👤
             </button>
           </div>
         </div>
       </div>
 
-      {/* ANNOUNCEMENT & CELEBRATION BANNER */}
-      {(announcements.length > 0 || birthdays.length > 0 || anniversaries.length > 0) && (
-        <div style={{ padding: '0 20px', marginBottom: 20 }}>
-          <div style={{ 
-            background: 'linear-gradient(135deg, #6200ea, #d500f9)', 
-            color: 'white', 
-            borderRadius: 16, 
-            padding: '24px', 
-            boxShadow: '0 12px 24px rgba(98, 0, 234, 0.25)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ position: 'absolute', right: -30, top: -30, fontSize: '10rem', opacity: 0.15, transform: 'rotate(-15deg)' }}>✨</div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: (birthdays.length > 0 || anniversaries.length > 0) ? '1fr 1fr' : '1fr', gap: 20 }}>
-              
-              {/* Left Column: Events */}
-              {(birthdays.length > 0 || anniversaries.length > 0) && (
-                <div style={{ borderRight: announcements.length > 0 ? '1px solid rgba(255,255,255,0.2)' : 'none', paddingRight: 15 }}>
-                  {birthdays.length > 0 && (
-                    <div style={{ marginBottom: 15 }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}>🎂 {t('upcomingBirthdays')}</h4>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        {birthdays.slice(0, 2).map(b => (
-                          <div key={b._id} style={{ background: 'rgba(255,255,255,0.25)', padding: '6px 14px', borderRadius: 20, fontSize: '0.9rem', fontWeight: 700 }}>
-                            {b.name} ({new Date(b.dob).toLocaleDateString([], { month: 'short', day: 'numeric' })})
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  {anniversaries.length > 0 && (
-                    <div>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}>💼 {t('workAnniversaries') || 'Work Anniversaries'}</h4>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        {anniversaries.slice(0, 2).map(a => (
-                          <div key={a._id} style={{ background: 'rgba(255,255,255,0.25)', padding: '6px 14px', borderRadius: 20, fontSize: '0.9rem', fontWeight: 700 }}>
-                            {a.name} ({new Date().getFullYear() - new Date(a.joinDate).getFullYear()} {t('years') || 'yr'})
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Right Column: Latest Announcement */}
-              {announcements.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: 8 }}>📢 {t('latestAnnouncement') || 'Latest News'}</h4>
-                  <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800 }}>{announcements[0].title}</p>
-                  <p style={{ margin: '6px 0 12px 0', fontSize: '0.95rem', opacity: 0.9 }}>{announcements[0].message.substring(0, 100)}...</p>
-                  <button 
-                    onClick={() => navigate('/admin/announcements')}
-                    style={{ alignSelf: 'flex-start', background: 'white', color: '#6200ea', border: 'none', padding: '8px 20px', borderRadius: 25, fontSize: '0.9rem', fontWeight: 900, cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
-                  >
-                    {t('viewAll') || 'Read More'}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ALERTS */}
       <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>

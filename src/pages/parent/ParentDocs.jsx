@@ -79,7 +79,10 @@ export default function ParentDocs() {
           <input name="title" placeholder="File Description (e.g., Asthma Plan)" required className="input" />
           <input name="category" placeholder="Category (e.g., Medical, Photo, Signed Form)" required className="input" />
           <input type="file" required className="input" style={{ background: '#f5f5f5', padding: 10 }} />
-          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', background: '#8e24aa' }}>Upload File</button>
+          <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start', background: '#8e24aa', padding: '12px 25px', borderRadius: 12, fontWeight: 800 }}>
+            📤 {t('uploadToOffice') || 'Upload to Office'}
+          </button>
+          <p style={{ fontSize: '0.8rem', color: '#888', margin: 0 }}>Documents uploaded here are sent directly to the administration.</p>
         </form>
       </div>
 

@@ -137,17 +137,46 @@ export default function CalendarView({ readOnly = false }) {
                   cursor: readOnly ? 'default' : 'pointer',
                   border: isToday ? '2px solid #2196f3' : '1px solid #eee',
                   background: event ? (event.color || '#2196f3') : 'white',
-                  color: event ? 'white' : '#333',
-                  position: 'relative', overflow: 'hidden'
+                  color: event ? 'white' : '#1a1a1a',
+                  position: 'relative', overflow: 'hidden',
+                  boxShadow: isToday ? '0 0 10px rgba(33, 150, 243, 0.3)' : 'none',
+                  transition: 'transform 0.1s'
                 }}
+                className="calendar-day"
               >
-                <div style={{ fontWeight: 800, fontSize: '0.8rem' }}>{d}</div>
-                {event && <div style={{ fontSize: '0.55rem', fontWeight: 700 }}>{event.type}</div>}
-                <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {dayShifts.slice(0, 2).map((s, idx) => (
-                    <div key={idx} style={{ fontSize: '0.5rem', background: s.isActual ? '#4caf50' : '#9c27b0', color: 'white', padding: '1px 2px', borderRadius: 2 }}>
-                      {staff.find(st => st._id === s.staffId)?.name?.split(' ')[0]}
+                <div style={{ fontWeight: 800, fontSize: '0.9rem', marginBottom: 2 }}>{d}</div>
+                
+                {/* General Note Indicator */}
+                {event && (
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ 
+                      fontSize: '0.65rem', 
+                      fontWeight: 700, 
+                      background: 'rgba(0,0,0,0.1)', 
+                      padding: '2px 4px', 
+                      borderRadius: 4, 
+                      marginBottom: 4,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {event.type}
                     </div>
+                    {event.note && (
+                      <div style={{ fontSize: '0.6rem', opacity: 0.9, lineHeight: 1.1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {event.note}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  {dayShifts.slice(0, 3).map((s, idx) => (
+                    <div key={idx} style={{ 
+                      width: 6, height: 6, borderRadius: '50%', 
+                      background: s.isActual ? '#4caf50' : '#ff9800',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                    }} title={staff.find(st => st._id === s.staffId)?.name} />
                   ))}
                 </div>
               </div>
