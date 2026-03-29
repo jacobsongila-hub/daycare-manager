@@ -62,7 +62,7 @@ function ProtectedRoute({ children, allowedRoles }) {
   if (loading) return <div className="splash"><div className="spinner"></div></div>;
   if (!user) return <Navigate to="/login" replace />;
     const role = (user.role || '').toLowerCase();
-    const isAllowed = allowedRoles.some(r => role === r);
+    const isAllowed = allowedRoles?.some(r => role === r) || false;
     const isAdmin = role === 'admin' || role === 'owner';
 
     if (!isAllowed && !isAdmin) {
