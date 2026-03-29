@@ -2,7 +2,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useNotification } from '../../context/NotificationContext';
 import { useConfirm } from '../../context/ConfirmContext';
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api';
+import api, { FamiliesApi, StaffApi, register } from '../../services/api';
 
 const roleColors = {
   admin: 'avatar-blue',
@@ -24,6 +24,7 @@ export default function UserManagement() {
   const [showPass, setShowPass] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
+  const [syncing, setSyncing] = useState(false);
 
   const ROLES = [
     { value: 'admin', label: `👑 ${t('admin') || 'Admin'}` },
@@ -81,6 +82,62 @@ export default function UserManagement() {
     setShowModal(true);
   };
 
+  const handleSyncAccounts = async () => {
+    if (!(await confirm('This will automatically create login accounts for all families and staff that don\'t have one yet. Use default password "Daycare123!"?'))) return;
+    
+    setSyncing(true);
+    try {
+      const [fRes, sRes, uRes] = await Promise.all([
+        FamiliesApi.getAll(),
+        StaffApi.getAll(),
+        api.get('/api/users')
+      ]);
+      
+      const families = fRes.data || [];
+      const staff = sRes.data || [];
+      const currentUsers = uRes.data || [];
+      const existingEmails = new Set(currentUsers.map(u => u.email.toLowerCase()));
+      
+      let createdCount = 0;
+      
+      // Sync Families
+      for (const fam of families) {
+        const email = fam.loginEmail || fam.motherEmail || fam.fatherEmail;
+        if (email && !existingEmails.has(email.toLowerCase())) {
+          await register({
+            name: `${fam.familyName} Parent`,
+            email: email,
+            password: 'Daycare123!',
+            role: 'parent'
+          });
+          existingEmails.add(email.toLowerCase());
+          createdCount++;
+        }
+      }
+      
+      // Sync Staff
+      for (const st of staff) {
+        if (st.email && !existingEmails.has(st.email.toLowerCase())) {
+          await register({
+            name: st.name,
+            email: st.email,
+            password: 'Daycare123!',
+            role: 'staff'
+          });
+          existingEmails.add(st.email.toLowerCase());
+          createdCount++;
+        }
+      }
+      
+      addToast(`Sync complete! Created ${createdCount} new accounts.`, 'success');
+      load();
+    } catch (err) {
+      addToast('Failed to sync accounts', 'error');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleDelete = async (u) => {
     const id = u._id || u.id;
     if (await confirm(t('confirmDeleteUser') || 'Delete User?', 'Confirm Delete', true)) {
@@ -103,9 +160,14 @@ export default function UserManagement() {
           <h2 className="page-title">👥 {t('userAccounts')}</h2>
           <p className="page-subtitle">{t('manageLogins')}</p>
         </div>
-        <button className="btn btn-primary" onClick={() => { setForm({ name: '', email: '', password: '', role: 'staff' }); setIsEdit(false); setShowModal(true); }}>
-          ➕ {t('addUserAccount')}
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary" onClick={handleSyncAccounts} disabled={syncing}>
+            {syncing ? '⌛ Syncing...' : '🔄 Sync Missing Accounts'}
+          </button>
+          <button className="btn btn-primary" onClick={() => { setForm({ name: '', email: '', password: '', role: 'staff' }); setIsEdit(false); setShowModal(true); }}>
+            ➕ {t('addUserAccount')}
+          </button>
+        </div>
       </div>
 
       {loading ? <div className="spinner"></div> : (
