@@ -200,8 +200,9 @@ export default function Dashboard() {
             <div style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 700, marginTop: 4 }}>{today}</div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
-            <button className="btn btn-secondary btn-icon" onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>🔗</button>
-            <button className="btn btn-secondary btn-icon" onClick={() => navigate('/admin/settings')}>👤</button>
+            <button className="btn btn-secondary" title="Share" onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })} style={{ width: 44, height: 44, padding: 0 }}>🔗</button>
+            <button className="btn btn-secondary" title="Settings" onClick={() => navigate('/admin/settings')} style={{ width: 44, height: 44, padding: 0 }}>⚙️</button>
+            <button className="btn btn-danger" title={t('logout')} onClick={() => { logout(); navigate('/login'); }} style={{ width: 44, height: 44, padding: 0, background: '#ffebee', color: 'var(--danger)' }}>🚪</button>
           </div>
         </div>
       </div>

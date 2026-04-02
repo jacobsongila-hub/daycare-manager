@@ -14,6 +14,7 @@ export default function ParentLayout() {
     { to: '/parent/photos', icon: '📸', label: 'Photos' },
     { to: '/parent/docs', icon: '📄', label: t('mydocs') },
     { to: '/parent/profile', icon: '👤', label: t('profile') },
+    { to: '/logout', icon: '🚪', label: t('logout'), action: true },
   ];
 
   return (
@@ -31,11 +32,18 @@ export default function ParentLayout() {
 
       <nav className="bottom-nav">
         {navItems.map((item) => (
-          <NavLink key={item.to} to={item.to} end={item.end}
-            className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-            <span className="nav-icon">{item.icon}</span>
-            <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
-          </NavLink>
+          item.action ? (
+            <button key="logout" onClick={handleLogout} className="nav-item" style={{ border: 'none', background: 'none' }}>
+              <span className="nav-icon">{item.icon}</span>
+              <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
+            </button>
+          ) : (
+            <NavLink key={item.to} to={item.to} end={item.end}
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+              <span className="nav-icon">{item.icon}</span>
+              <span style={{ fontSize: '0.7rem' }}>{item.label}</span>
+            </NavLink>
+          )
         ))}
       </nav>
 
