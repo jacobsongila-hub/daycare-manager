@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'https://daycare-backend-nxx8.onrender.com',
+        target: 'https://daycare-hub-backend.onrender.com',
         changeOrigin: true
       }
     }

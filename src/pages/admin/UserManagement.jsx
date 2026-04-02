@@ -25,6 +25,8 @@ export default function UserManagement() {
   const [isEdit, setIsEdit] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [syncing, setSyncing] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
 
   const ROLES = [
     { value: 'admin', label: `👑 ${t('admin') || 'Admin'}` },
@@ -57,12 +59,62 @@ export default function UserManagement() {
     setError('');
     try {
       if (isEdit) {
+        // Sync update to Family/Staff if applicable
+        const oldUserRes = await api.get(`/api/users/${selectedId}`);
+        const oldUser = oldUserRes.data;
+        
         const { password, ...updateData } = form;
         if (password) updateData.password = password;
         await api.put(`/api/users/${selectedId}`, updateData);
+        
+        // Find and update linked records
+        if (oldUser.role === 'parent') {
+          const famsRes = await FamiliesApi.getAll();
+          const targetFam = (famsRes.data || []).find(f => 
+            (f.loginEmail || f.motherEmail || f.fatherEmail)?.toLowerCase() === oldUser.email?.toLowerCase()
+          );
+          if (targetFam) {
+            await FamiliesApi.update(targetFam._id, { loginEmail: form.email });
+          }
+        } else if (oldUser.role === 'staff') {
+          const staffRes = await StaffApi.getAll();
+          const targetStaff = (staffRes.data || []).find(s => s.email?.toLowerCase() === oldUser.email?.toLowerCase());
+          if (targetStaff) {
+             await StaffApi.update(targetStaff._id, { name: form.name, email: form.email });
+          }
+        }
+
         addToast(t('userUpdated'), 'success');
       } else {
         await register(form);
+        
+        // Sync creation: Create Family or Staff if applicable
+        if (form.role === 'parent') {
+          try {
+            await FamiliesApi.create({
+              familyName: form.name.split(' ').pop() || form.name,
+              loginEmail: form.email,
+              motherName: form.name,
+              motherPhone: 'N/A'
+            });
+            addToast('Corresponding family profile created', 'success');
+          } catch (famErr) {
+            console.error('Failed to auto-create family', famErr);
+          }
+        } else if (form.role === 'staff') {
+          try {
+            await StaffApi.create({
+              name: form.name,
+              email: form.email,
+              role: 'Teacher',
+              status: 'active'
+            });
+            addToast('Corresponding staff profile created', 'success');
+          } catch (staffErr) {
+            console.error('Failed to auto-create staff profile', staffErr);
+          }
+        }
+
         addToast(t('userCreated'), 'success');
       }
       setShowModal(false);
@@ -142,6 +194,18 @@ export default function UserManagement() {
     const id = u._id || u.id;
     if (await confirm(t('confirmDeleteUser') || 'Delete User?', 'Confirm Delete', true)) {
       try {
+        // Find and delete linked Family if parent
+        if (u.role === 'parent') {
+          const famsRes = await FamiliesApi.getAll();
+          const targetFam = (famsRes.data || []).find(f => 
+            (f.loginEmail || f.motherEmail || f.fatherEmail)?.toLowerCase() === u.email?.toLowerCase()
+          );
+          if (targetFam) {
+            await FamiliesApi.delete(targetFam._id);
+            addToast('Corresponding family record also deleted', 'info');
+          }
+        }
+
         await api.delete(`/api/users/${id}`);
         addToast(t('userDeleted'), 'success');
         load();
@@ -160,9 +224,9 @@ export default function UserManagement() {
           <h2 className="page-title">👥 {t('userAccounts')}</h2>
           <p className="page-subtitle">{t('manageLogins')}</p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={handleSyncAccounts} disabled={syncing}>
-            {syncing ? '⌛ Syncing...' : '🔄 Sync Missing Accounts'}
+            {syncing ? '⌛ Syncing...' : `🔄 ${t('syncMissingAccounts') || 'Sync Missing Accounts'}`}
           </button>
           <button className="btn btn-primary" onClick={() => { setForm({ name: '', email: '', password: '', role: 'staff' }); setIsEdit(false); setShowModal(true); }}>
             ➕ {t('addUserAccount')}
@@ -170,12 +234,41 @@ export default function UserManagement() {
         </div>
       </div>
 
-      {loading ? <div className="spinner"></div> : (
+      <div style={{ background: 'var(--surface)', padding: '16px', borderRadius: '16px', marginBottom: '24px', display: 'flex', gap: '12px', boxShadow: 'var(--shadow)', flexWrap: 'wrap' }}>
+          <div style={{ flex: 2, minWidth: '200px' }}>
+            <input 
+              className="input" 
+              placeholder={`${t('searchBy') || 'Search by Name / Email'}...`}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ background: 'var(--surface-2)' }}
+            />
+          </div>
+          <div style={{ flex: 1, minWidth: '150px' }}>
+            <select 
+              className="input" 
+              value={roleFilter} 
+              onChange={e => setRoleFilter(e.target.value)}
+              style={{ background: 'var(--surface-2)' }}
+            >
+              <option value="all">🔍 {t('allRoles') || 'All Roles'}</option>
+              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+          </div>
+      </div>
+
+      {loading ? <div className="spinner" style={{ margin: '40px auto' }}></div> : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 15 }}>
-          {users.map((u, i) => {
+          {users
+            .filter(u => {
+                const matchesSearch = (u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || u.email?.toLowerCase().includes(searchTerm.toLowerCase()));
+                const matchesRole = roleFilter === 'all' || (u.role || '').toLowerCase() === roleFilter.toLowerCase();
+                return matchesSearch && matchesRole;
+            })
+            .map((u, i) => {
             const role = (u.role || '').toLowerCase();
             return (
-              <div key={u.id ?? u._id ?? i} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
+              <div key={u.id ?? u._id ?? i} className="card user-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
                 <div style={{ display: 'flex', gap: 15, alignItems: 'center' }}>
                   <div className={`avatar ${roleColors[role] || 'avatar-blue'}`}>
                     {u.name?.charAt(0).toUpperCase() || 'U'}

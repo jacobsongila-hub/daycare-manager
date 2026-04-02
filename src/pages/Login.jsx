@@ -14,7 +14,7 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      setError('Please enter your email and password.');
+      setError('Please enter your username and password.');
       return;
     }
     setError('');
@@ -52,12 +52,12 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Email or Username</label>
+            <label className="form-label" htmlFor="email">Username</label>
             <input
               id="email"
               type="text"
               className="form-input"
-              placeholder="Enter email or username"
+              placeholder="Enter your username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="username"

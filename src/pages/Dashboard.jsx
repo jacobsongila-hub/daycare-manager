@@ -138,46 +138,48 @@ export default function Dashboard() {
   };
 
   return (
-    <div style={{ paddingBottom: 80 }}>
-      {/* GLOBAL ANNOUNCEMENT BANNER (STICKY TOP) */}
+    <div className="dashboard-container" style={{ paddingBottom: 100, animation: 'fadeIn 0.6s ease' }}>
+      {/* GLOBAL ANNOUNCEMENT BANNER */}
       {(announcements.length > 0 || birthdays.length > 0 || anniversaries.length > 0) ? (
         <div style={{ 
-          background: 'linear-gradient(90deg, #6200ea, #d500f9)', 
+          background: 'var(--gradient-primary)', 
           color: 'white', 
-          padding: '12px 20px', 
+          padding: '14px 24px', 
           textAlign: 'center', 
           fontSize: '0.95rem',
           fontWeight: 700,
-          boxShadow: '0 4px 12px rgba(98, 0, 234, 0.2)',
+          boxShadow: 'var(--shadow-md)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 15,
           position: 'sticky',
           top: 0,
-          zIndex: 100
+          zIndex: 100,
+          backdropFilter: 'blur(10px)'
         }}>
           {birthdays.length > 0 && (
-            <span>🎂 {t('birthdayAlert') || 'Birthday Today'}: {birthdays[0].name}!</span>
+            <span>🎂 {t('birthdayAlert')}: {birthdays[0].name}!</span>
           )}
           {anniversaries.length > 0 && (
-            <span>🎉 {t('anniversaryAlert') || 'Work Anniversary'}: {anniversaries[0].name}!</span>
+            <span>🎉 {t('anniversaryAlert')}: {anniversaries[0].name}!</span>
           )}
           {announcements.length > 0 && !birthdays.length && !anniversaries.length && (
             <span>📢 {announcements[0].title}</span>
           )}
           <button 
             onClick={() => navigate('/admin/announcements')}
-            style={{ background: 'rgba(255,255,255,0.25)', border: 'none', color: 'white', padding: '4px 12px', borderRadius: 20, fontSize: '0.8rem', cursor: 'pointer', fontWeight: 800 }}
+            className="btn btn-sm"
+            style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.3)', color: 'white', padding: '4px 14px' }}
           >
-            {t('view') || 'View'}
+            {t('view')}
           </button>
         </div>
       ) : (
         <div style={{ 
-          background: 'linear-gradient(90deg, #1565c0, #1e88e5)', 
+          background: 'var(--gradient-primary)', 
           color: 'white', 
-          padding: '10px 20px', 
+          padding: '12px 24px', 
           textAlign: 'center', 
           fontSize: '0.9rem',
           fontWeight: 600,
@@ -185,111 +187,109 @@ export default function Dashboard() {
           top: 0,
           zIndex: 100
         }}>
-          ✨ {t('welcomeMessage') || 'Welcome to Little Ones Management Portal!'}
+          ✨ {t('welcomeMessage')}
         </div>
       )}
 
       {/* HEADER */}
-      <div style={{ padding: '20px', background: 'white', color:'#333', borderBottom: '1px solid #eee', marginBottom: 20 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+      <div style={{ padding: '30px 24px', background: 'white', borderBottom: '1px solid var(--border)', marginBottom: 24, boxShadow: 'var(--shadow)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: '1rem', color: '#666', fontWeight: 500 }}>{getDayGreeting(t)},</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1a1a1a' }}>{user?.name || 'Admin'}</div>
-            <div style={{ fontSize: '0.85rem', color: '#888', marginTop: 4 }}>{today}</div>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>{getDayGreeting(t)}</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px' }}>{user?.name || 'Admin'}</div>
+            <div style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 700, marginTop: 4 }}>{today}</div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={{ background: '#f5f7f9', border: 'none', color: '#666', padding: '12px', borderRadius: '15px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>
-              🔗
-            </button>
-            <button style={{ background: '#f5f7f9', border: 'none', color: '#666', padding: '12px', borderRadius: '15px', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} onClick={() => navigate('/admin/settings')}>
-              👤
-            </button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button className="btn btn-secondary btn-icon" onClick={() => navigator.share?.({ title: 'Little Ones Care', url: window.location.origin })}>🔗</button>
+            <button className="btn btn-secondary btn-icon" onClick={() => navigate('/admin/settings')}>👤</button>
           </div>
         </div>
       </div>
 
 
       {/* ALERTS */}
-      <div style={{ padding: '0 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: '0 24px', display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
         {pendingShifts > 0 && (
-          <div style={{ background: '#fff3e0', borderLeft: '4px solid #ff9800', padding: 15, borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>📋 <strong>{pendingShifts} {t('pendingShiftsCount')}</strong></span>
-            <button onClick={() => navigate('/admin/shift-requests')} style={{ background: '#ff9800', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: 4, cursor: 'pointer' }}>{t('review')}</button>
+          <div className="alert alert-warning" style={{ borderRadius: 16, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(255, 160, 0, 0.1)' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 700 }}>📋 {pendingShifts} {t('pendingShiftsCount')}</span>
+            <button className="btn btn-sm btn-primary" style={{ padding: '8px 16px' }} onClick={() => navigate('/admin/shift-requests')}>{t('review')}</button>
           </div>
         )}
         {attendanceProgress < 100 && (
-          <div style={{ background: '#ffebee', borderLeft: '4px solid #f44336', padding: 15, borderRadius: 8 }}>
+          <div className="alert alert-error" style={{ borderRadius: 16, padding: '16px 24px', boxShadow: '0 4px 12px rgba(229, 57, 53, 0.1)', fontWeight: 700 }}>
             {getTranslatedProgressMessage()}
           </div>
         )}
       </div>
 
       {/* QUICK STATS - PREMIUM CARDS */}
-      <div style={{ padding: '0 20px 25px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 15 }}>
-        <div style={{ background: 'linear-gradient(135deg, #43a047, #66bb6a)', padding: 22, borderRadius: 24, color: 'white', boxShadow: '0 10px 20px rgba(67, 160, 71, 0.2)' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{stats.present}</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1 }}>👶 {t('childrenPresent')}</div>
+      <div style={{ padding: '0 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
+        <div className="card" style={{ background: 'var(--gradient-success)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+          <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.present}</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>👶 {t('childrenPresent')}</div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #e53935, #ef5350)', padding: 22, borderRadius: 24, color: 'white', boxShadow: '0 10px 20px rgba(229, 57, 53, 0.2)' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{stats.absent}</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1 }}>❌ {t('childrenAbsent')}</div>
+        <div className="card" style={{ background: 'var(--gradient-danger)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+          <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.absent}</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>❌ {t('childrenAbsent')}</div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #1e88e5, #42a5f5)', padding: 22, borderRadius: 24, color: 'white', boxShadow: '0 10px 20px rgba(30, 136, 229, 0.2)' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{stats.staffIn}</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1 }}>👩‍🏫 {t('staffIn')}</div>
+        <div className="card" style={{ background: 'var(--gradient-primary)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+          <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.staffIn}</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>👩‍🏫 {t('staffIn')}</div>
         </div>
-        <div style={{ background: 'linear-gradient(135deg, #8e24aa, #ab47bc)', padding: 22, borderRadius: 24, color: 'white', boxShadow: '0 10px 20px rgba(142, 36, 170, 0.2)' }}>
-          <div style={{ fontSize: '2.5rem', fontWeight: 900 }}>{ratio}:1</div>
-          <div style={{ fontSize: '0.85rem', fontWeight: 700, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1 }}>📊 {t('staffChildRatio')}</div>
+        <div className="card" style={{ background: 'linear-gradient(135deg, #8e24aa, #6a1b9a)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+          <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{ratio}:1</div>
+          <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>📊 {t('staffChildRatio')}</div>
         </div>
       </div>
 
-      <div style={{ padding: '0 20px 25px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 20 }}>
+      <div style={{ padding: '0 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
         
         {/* PROGRESS & TRACKING */}
-        <div className="card" style={{ padding: 25, borderRadius: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1a1a1a', fontWeight: 800 }}>📈 {t('attendanceProgress')}</h3>
-            <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e88e5' }}>{attendanceProgress}%</span>
+        <div className="card" style={{ padding: 28, borderRadius: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text)', fontWeight: 900 }}>📈 {t('attendanceProgress')}</h3>
+            <span style={{ fontSize: '1.2rem', fontWeight: 950, color: 'var(--primary)' }}>{attendanceProgress}%</span>
           </div>
-          <div style={{ width: '100%', background: '#f0f0f0', height: 14, borderRadius: 10, overflow: 'hidden', marginBottom: 20 }}>
-            <div style={{ width: `${attendanceProgress}%`, background: 'linear-gradient(90deg, #1e88e5, #42a5f5)', height: '100%', borderRadius: 10, transition: 'width 1s cubic-bezier(0.1, 0.9, 0.2, 1)' }} />
+          <div style={{ width: '100%', background: 'var(--bg)', height: 16, borderRadius: 12, overflow: 'hidden', marginBottom: 24 }}>
+            <div style={{ width: `${attendanceProgress}%`, background: 'var(--gradient-primary)', height: '100%', borderRadius: 12, transition: 'width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
           </div>
-          <p style={{ margin: 0, fontSize: '0.9rem', color: '#666', lineHeight: 1.5 }}>
-            {attendanceProgress === 100 ? '✅ All children accounted for today.' : '⚠️ Some children have not been marked yet.'}
+          <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6, fontWeight: 500 }}>
+            {attendanceProgress === 100 ? '✨ Everything is perfect! All children are accounted for.' : '⌛ Almost there! Click below to finish marking attendance.'}
           </p>
           <button 
+            className="btn btn-secondary"
             onClick={() => navigate('/admin/attendance')}
-            style={{ width: '100%', marginTop: 25, background: '#f5f7f9', border: 'none', padding: '15px', borderRadius: 16, color: '#1e88e5', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
+            style={{ width: '100%', marginTop: 28, padding: '16px', borderRadius: 20, fontWeight: 800 }}
           >
             {t('openAttendance') || 'View Attendance List'}
           </button>
         </div>
 
         {/* STICKY REMINDERS PREVIEW */}
-        <div className="card" style={{ padding: 25, borderRadius: 24, background: '#FFFDF0', boxShadow: '0 10px 30px rgba(251, 192, 45, 0.1)', border: '1px solid #FFF9C4' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#444', fontWeight: 800 }}>📌 {t('reminders')}</h3>
+        <div className="card" style={{ padding: 28, borderRadius: 32, background: 'rgba(255, 249, 196, 0.3)', border: '1px solid rgba(255, 241, 118, 0.5)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#5d4037', fontWeight: 900 }}>📌 {t('reminders')}</h3>
             <button 
+              className="btn btn-sm btn-primary"
               onClick={() => navigate('/admin/reminders')}
-              style={{ background: '#FBC02D', color: '#444', border: 'none', padding: '6px 15px', borderRadius: 20, fontSize: '0.8rem', fontWeight: 900, cursor: 'pointer' }}
+              style={{ background: '#afb42b', border: 'none', padding: '6px 16px', borderRadius: 20 }}
             >
-              {t('viewBoard') || 'Board'}
+              {t('viewBoard')}
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             {reminders.filter(r => !r.completed).slice(0, 3).map((r, i) => (
-              <div key={r._id} style={{ background: 'white', padding: '12px 15px', borderRadius: 12, boxShadow: '0 4px 10px rgba(0,0,0,0.03)', display: 'flex', alignItems: 'center', gap: 10, borderLeft: `4px solid ${i % 2 === 0 ? '#FBC02D' : '#4FC3F7'}` }}>
-                <div style={{ flex: 1, fontSize: '0.95rem', fontWeight: 600, color: '#333' }}>{r.title}</div>
+              <div key={r._id} style={{ background: 'white', padding: '14px 18px', borderRadius: 16, boxShadow: 'var(--shadow)', display: 'flex', alignItems: 'center', gap: 12, borderRight: `6px solid ${i % 2 === 0 ? '#afb42b' : '#4FC3F7'}` }}>
+                <div style={{ flex: 1, fontSize: '0.95rem', fontWeight: 700, color: '#3e2723' }}>{r.title}</div>
               </div>
             ))}
             {reminders.filter(r => !r.completed).length === 0 && (
-              <div style={{ textAlign: 'center', padding: '20px', color: '#999', fontStyle: 'italic' }}>✨ {t('allCaughtUp') || 'All caught up!'}</div>
+              <div style={{ textAlign: 'center', padding: '24px', color: 'var(--text-light)', fontStyle: 'italic', fontWeight: 600 }}>✨ {t('allCaughtUp')}</div>
             )}
           </div>
-          <form onSubmit={handleCreateReminder} style={{ marginTop: 20, display: 'flex', gap: 10 }}>
-             <input name="title" placeholder={t('quickNote') || 'Quick note...'} required className="input" style={{ flex: 1, background: 'rgba(255,255,255,0.8)', border: '1px solid #eee' }} />
-             <button type="submit" style={{ background: '#444', color: 'white', border: 'none', width: 44, height: 44, borderRadius: 12, cursor: 'pointer', fontSize: '1.2rem' }}>+</button>
+          <form onSubmit={handleCreateReminder} style={{ marginTop: 24, display: 'flex', gap: 12 }}>
+             <input name="title" placeholder={t('quickNote')} required className="input" style={{ flex: 1, background: 'white' }} />
+             <button type="submit" className="btn btn-primary" style={{ width: 50, height: 50, borderRadius: 16, padding: 0, fontSize: '1.5rem' }}>+</button>
           </form>
         </div>
       </div>

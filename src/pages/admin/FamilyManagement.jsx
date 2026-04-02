@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FamiliesApi, ChildrenApi, register } from '../../services/api';
+import api, { FamiliesApi, ChildrenApi, register, UsersApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { calculateAge } from '../../utils/formatters';
 import { useLanguage } from '../../context/LanguageContext';
@@ -23,13 +23,13 @@ export default function FamilyManagement() {
     setLoading(true);
     try {
       const [fRes, cRes] = await Promise.all([FamiliesApi.getAll(), ChildrenApi.getAll()]);
-      const fams = Array.isArray(fRes.data) ? fRes.data : [];
+      const fams = (Array.isArray(fRes.data) ? fRes.data : []).sort((a, b) => (a.familyName || '').localeCompare(b.familyName || ''));
       const kids = Array.isArray(cRes.data) ? cRes.data : [];
       
       setFamilies(fams);
       
       const dict = {};
-      kids.forEach(k => {
+      kids.sort((a, b) => (a.name || '').localeCompare(b.name || '')).forEach(k => {
         if (!dict[k.familyId]) dict[k.familyId] = [];
         dict[k.familyId].push(k);
       });
@@ -50,13 +50,38 @@ export default function FamilyManagement() {
     const data = Object.fromEntries(formData);
     try {
       if (editFamily) {
+        // Sync update to user account if it exists
+        const oldEmail = editFamily.loginEmail || editFamily.motherEmail || editFamily.fatherEmail;
+        const newEmail = data.loginEmail || data.motherEmail || data.fatherEmail;
+        
         await FamiliesApi.update(editFamily._id, data);
-        addToast('Family updated successfully', 'success');
+        
+        // Find and update corresponding user
+        if (oldEmail) {
+          try {
+            const usersRes = await api.get('/api/users');
+            const user = (usersRes.data || []).find(u => u.email?.toLowerCase() === oldEmail.toLowerCase());
+            if (user) {
+              await api.put(`/api/users/${user._id || user.id}`, {
+                name: `${data.familyName} Parent`,
+                email: newEmail
+              });
+              addToast('Family and linked user account updated', 'success');
+            } else {
+              addToast('Family updated', 'success');
+            }
+          } catch (userErr) {
+            console.error('Failed to sync user update', userErr);
+            addToast('Family updated but user account sync failed', 'warning');
+          }
+        } else {
+          addToast('Family updated successfully', 'success');
+        }
       } else {
         const res = await FamiliesApi.create(data);
         const newFam = res.data;
 
-        // Auto-create login account if email/password provided
+        // Auto-create login account if email/password provided (Existing logic)
         if (data.loginEmail && data.password) {
           try {
             await register({
@@ -81,8 +106,25 @@ export default function FamilyManagement() {
   };
 
   const handleDeleteFamily = async (id) => {
+    const famToDelete = families.find(f => f._id === id);
     if (!(await confirm('Are you sure you want to delete this family and all linked records?', 'Confirm Delete', true))) return;
+    
     try {
+      // Find and delete corresponding user account before deleting family
+      const email = famToDelete?.loginEmail || famToDelete?.motherEmail || famToDelete?.fatherEmail;
+      if (email) {
+        try {
+          const usersRes = await api.get('/api/users');
+          const user = (usersRes.data || []).find(u => u.email?.toLowerCase() === email.toLowerCase());
+          if (user) {
+            await api.delete(`/api/users/${user._id || user.id}`);
+            addToast('Linked user account also deleted', 'info');
+          }
+        } catch (userErr) {
+          console.warn('Could not find/delete linked user account', userErr);
+        }
+      }
+
       await FamiliesApi.delete(id);
       addToast('Family deleted', 'success');
       loadData();
@@ -256,8 +298,8 @@ export default function FamilyManagement() {
               {!editFamily && (
                 <div style={{ background: '#f5f7f9', padding: '15px', borderRadius: '12px', marginTop: '10px' }}>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>🔑 {t('loginAccount') || 'Parent Login Account'}</h4>
-                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>Provide an email and password to enable parent portal access.</p>
-                  <input name="loginEmail" type="email" placeholder={t('email') || "Email"} className="input" style={{ background: 'white', marginBottom: 10 }} />
+                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>Provide a username and password to enable parent portal access.</p>
+                  <input name="loginEmail" type="text" placeholder="Username" className="input" style={{ background: 'white', marginBottom: 10 }} />
                   <input name="password" type="password" placeholder={t('password') || "Password (min. 6 chars)"} className="input" style={{ background: 'white' }} minLength={6} />
                 </div>
               )}

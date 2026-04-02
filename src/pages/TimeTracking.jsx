@@ -329,8 +329,15 @@ function staffEntriesByMonth(entries) {
     const month = d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     if (!groups[month]) groups[month] = { month, entries: [], totalHours: 0 };
     groups[month].entries.push(e);
+    groups[month].calculateDiff = calculateDiff; // Keep ref if needed or just use logic
     groups[month].totalHours += calculateDiff(e.clockIn, e.clockOut);
   });
   
-  return Object.values(groups).sort((a,b) => new Date(b.entries[0].clockIn) - new Date(a.entries[0].clockIn));
+  // Sort months descending, and entries within each month descending
+  return Object.values(groups)
+    .sort((a,b) => new Date(b.entries[0].clockIn) - new Date(a.entries[0].clockIn))
+    .map(group => ({
+      ...group,
+      entries: group.entries.sort((a, b) => new Date(b.clockIn) - new Date(a.clockIn))
+    }));
 }

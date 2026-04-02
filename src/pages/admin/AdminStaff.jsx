@@ -24,7 +24,8 @@ export default function AdminStaff() {
         StaffApi.getAll().catch(() => ({ data: [] })),
         TimeEntriesApi.getAll().catch(() => ({ data: [] }))
       ]);
-      setStaff(Array.isArray(sRes.data) ? sRes.data : []);
+      const sortedStaff = (Array.isArray(sRes.data) ? sRes.data : []).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      setStaff(sortedStaff);
       setTimeEntries(Array.isArray(tRes.data) ? tRes.data : []);
     } catch (err) {
       addToast(t('errorLoadingStaff') || 'Failed to load staff directory', 'error');

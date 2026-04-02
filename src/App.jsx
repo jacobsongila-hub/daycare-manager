@@ -46,6 +46,7 @@ import ParentCalendar from './pages/parent/ParentCalendar';
 import ParentDocs from './pages/parent/ParentDocs';
 import ParentProfile from './pages/parent/ParentProfile';
 import ParentPhotos from './pages/parent/ParentPhotos';
+import SetupAccount from './pages/SetupAccount';
 
 function RoleRouter() {
   const { user } = useAuth();
@@ -61,16 +62,22 @@ function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
   if (loading) return <div className="splash"><div className="spinner"></div></div>;
   if (!user) return <Navigate to="/login" replace />;
-    const role = (user.role || '').toLowerCase();
-    const isAllowed = allowedRoles?.some(r => role === r) || false;
-    const isAdmin = role === 'admin' || role === 'owner';
 
-    if (!isAllowed && !isAdmin) {
-      // Authenticated but not authorized for this specific route
-      if (role === 'staff' || role === 'employee') return <Navigate to="/staff" replace />;
-      if (role === 'parent') return <Navigate to="/parent" replace />;
-      return <Navigate to="/login" replace />;
-    }
+  // Force first-time setup if needed
+  if (user.needsSetup && window.location.pathname !== '/setup-account') {
+    return <Navigate to="/setup-account" replace />;
+  }
+
+  const role = (user.role || '').toLowerCase();
+  const isAllowed = allowedRoles?.some(r => role === r) || false;
+  const isAdmin = role === 'admin' || role === 'owner';
+
+  if (!isAllowed && !isAdmin && allowedRoles) {
+    // Authenticated but not authorized for this specific route
+    if (role === 'staff' || role === 'employee') return <Navigate to="/staff" replace />;
+    if (role === 'parent') return <Navigate to="/parent" replace />;
+    return <Navigate to="/login" replace />;
+  }
   return children;
 }
 
@@ -87,6 +94,7 @@ export default function App() {
           <BrowserRouter>
           <Routes>
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/setup-account" element={<ProtectedRoute><SetupAccount /></ProtectedRoute>} />
 
             <Route path="/" element={
               <ProtectedRoute>
