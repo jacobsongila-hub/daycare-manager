@@ -52,9 +52,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="email">Username</label>
+            <label className="form-label" htmlFor="username">Username</label>
             <input
-              id="email"
+              id="username"
               type="text"
               className="form-input"
               placeholder="Enter your username"
@@ -65,7 +65,7 @@ export default function Login() {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: '24px' }}>
             <label className="form-label" htmlFor="password">Password</label>
             <div className="password-input-wrapper">
               <input
@@ -84,7 +84,7 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? '🙈' : '👁️'}
               </button>
             </div>
           </div>
@@ -93,15 +93,15 @@ export default function Login() {
             type="submit"
             className="btn btn-primary"
             disabled={loading}
-            style={{ marginTop: '8px' }}
+            style={{ width: '100%' }}
           >
             {loading ? (
               <>
-                <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }}></span>
+                <span className="spinner" style={{ width: 18, height: 18, borderWidth: 2, marginRight: 8 }}></span>
                 Signing in…
               </>
             ) : (
-              '→ Sign In'
+              'Sign In →'
             )}
           </button>
         </form>

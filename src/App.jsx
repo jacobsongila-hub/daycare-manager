@@ -58,12 +58,23 @@ function RoleRouter() {
   return <Navigate to="/admin" replace />;
 }
 
+function Splash() {
+  return (
+    <div className="splash">
+      <div style={{ textAlign: 'center' }}>
+        <div className="splash-logo" style={{ fontSize: 80, marginBottom: 20 }}>🏠</div>
+        <div className="spinner" style={{ margin: '0 auto' }}></div>
+        <p style={{ marginTop: 20, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: 1 }}>LITTLE ONES</p>
+      </div>
+    </div>
+  );
+}
+
 function ProtectedRoute({ children, allowedRoles }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="splash"><div className="spinner"></div></div>;
+  if (loading) return <Splash />;
   if (!user) return <Navigate to="/login" replace />;
 
-  // Force first-time setup if needed
   if (user.needsSetup && window.location.pathname !== '/setup-account') {
     return <Navigate to="/setup-account" replace />;
   }
@@ -73,7 +84,6 @@ function ProtectedRoute({ children, allowedRoles }) {
   const isAdmin = role === 'admin' || role === 'owner';
 
   if (!isAllowed && !isAdmin && allowedRoles) {
-    // Authenticated but not authorized for this specific route
     if (role === 'staff' || role === 'employee') return <Navigate to="/staff" replace />;
     if (role === 'parent') return <Navigate to="/parent" replace />;
     return <Navigate to="/login" replace />;
@@ -83,7 +93,7 @@ function ProtectedRoute({ children, allowedRoles }) {
 
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
-  if (loading) return <div className="splash"><div className="spinner"></div></div>;
+  if (loading) return <Splash />;
   return user ? <RoleRouter /> : children;
 }
 export default function App() {

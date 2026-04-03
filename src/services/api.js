@@ -1,7 +1,10 @@
 import axios from 'axios';
 
-const BASE_URL = ''; // Use relative paths for proxy support; avoids /api/api doubling
+let BASE_URL = import.meta.env.VITE_API_URL || '';
 
+// If a direct URL is provided, and the code uses /api prefix, 
+// we might need to handle the mismatch if the backend doesn't use /api.
+// However, the proxy configuration is the preferred way.
 const api = axios.create({
   baseURL: BASE_URL,
   timeout: 10000,
@@ -19,10 +22,10 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && localStorage.getItem('token')) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/login';
+      window.location.href = '/login?expired=true';
     }
     return Promise.reject(error);
   }
@@ -59,5 +62,13 @@ export const clockIn = (staffId) =>
 export const clockOut = (staffId) =>
   api.post('/api/time-entries', { staffId, type: 'out', timestamp: new Date().toISOString() });
 export const markAttendance = (data) => api.post('/api/attendance/mark', data);
+
+export const setAuthToken = (token) => {
+  if (token) {
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete api.defaults.headers.common['Authorization'];
+  }
+};
 
 export default api;

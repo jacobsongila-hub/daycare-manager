@@ -8,7 +8,42 @@ export default function AdminReports() {
   const [startDate, setStartDate] = useState(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
   const [reportData, setReportData] = useState(null);
+  const [summaryData, setSummaryData] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  React.useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const [aRes, cRes] = await Promise.all([
+          AttendanceApi.getAll().catch(() => ({ data: [] })),
+          ChildrenApi.getAll().catch(() => ({ data: [] }))
+        ]);
+        const atts = Array.isArray(aRes.data) ? aRes.data : [];
+        const kids = Array.isArray(cRes.data) ? cRes.data : [];
+        const today = new Date().toISOString().split('T')[0];
+        
+        const currentMonth = today.substring(0, 7);
+        const monthAtts = atts.filter(a => a.date && a.date.startsWith(currentMonth));
+        
+        const presentToday = monthAtts.filter(a => a.date === today && a.status === 'Present').length;
+        
+        const absentCounts = {};
+        monthAtts.filter(a => a.status === 'Absent' || a.status === 'Sick').forEach(a => {
+          absentCounts[a.childId] = (absentCounts[a.childId] || 0) + 1;
+        });
+        const atRiskKids = kids.filter(k => absentCounts[k._id] > 3).map(k => k.name);
+        
+        const totalPresent = monthAtts.filter(a => a.status === 'Present').length;
+        const distinctDays = new Set(monthAtts.map(a => a.date)).size || 1;
+        const weeklyAvg = Math.round((totalPresent / distinctDays) * 5);
+        
+        setSummaryData({ presentToday, weeklyAvg, atRiskKids });
+      } catch (err) {
+        console.error("Failed to load summary", err);
+      }
+    };
+    fetchSummary();
+  }, []);
 
   const setPreset = (days) => {
     const end = new Date();
@@ -99,6 +134,30 @@ export default function AdminReports() {
         <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>📊 Reports Center</h2>
         <p style={{ margin: 0, opacity: 0.9 }}>Generate weekly/monthly insights and exports.</p>
       </div>
+
+      {summaryData && (
+        <div className="no-print" style={{ background: 'white', padding: '25px', borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: 25 }}>
+          <h3 style={{ margin: '0 0 15px 0', fontSize: '1.2rem', color: '#333' }}>📅 Current Month Summary</h3>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#fafafa' }}>
+                <th style={{ padding: '12px 15px', borderBottom: '2px solid #eee' }}>Present Today</th>
+                <th style={{ padding: '12px 15px', borderBottom: '2px solid #eee' }}>Weekly Avg</th>
+                <th style={{ padding: '12px 15px', borderBottom: '2px solid #eee' }}>Kids with &gt;3 Absences</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style={{ padding: '15px', fontSize: '1.2rem', fontWeight: 700, color: '#4caf50' }}>{summaryData.presentToday}</td>
+                <td style={{ padding: '15px', fontSize: '1.2rem', fontWeight: 700, color: '#1565c0' }}>{summaryData.weeklyAvg}</td>
+                <td style={{ padding: '15px', fontWeight: 600, color: '#d32f2f' }}>
+                  {summaryData.atRiskKids.length > 0 ? summaryData.atRiskKids.join(', ') : 'None'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="no-print" style={{ background: 'white', padding: '25px', borderRadius: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: 25 }}>
         <form onSubmit={generateReport}>

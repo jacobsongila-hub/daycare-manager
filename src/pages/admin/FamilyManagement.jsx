@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Skeleton from '../../components/Skeleton';
 import api, { FamiliesApi, ChildrenApi, register, UsersApi } from '../../services/api';
 import { useNotification } from '../../context/NotificationContext';
 import { calculateAge } from '../../utils/formatters';
@@ -38,7 +39,7 @@ export default function FamilyManagement() {
       console.error('Error loading families/children', err);
       addToast('Failed to load family data', 'error');
     } finally {
-      setLoading(false);
+      setTimeout(() => setLoading(false), 300); // Small delay for smooth transition
     }
   };
 
@@ -166,7 +167,38 @@ export default function FamilyManagement() {
   };
  
 
-  if (loading) return <div className="spinner" style={{ margin: '40px auto' }}></div>;
+  if (loading) {
+    return (
+      <div className="page-container" style={{ paddingBottom: 80, animation: 'none' }}>
+        <div className="page-header" style={{ marginBottom: 30 }}>
+          <div>
+            <Skeleton width="200px" height="32px" style={{ marginBottom: 8 }} />
+            <Skeleton width="300px" height="16px" />
+          </div>
+          <Skeleton width="120px" height="44px" />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} className="card" style={{ padding: 0 }}>
+              <div style={{ padding: 25, borderBottom: '1px solid var(--border)' }}>
+                <Skeleton width="40%" height="28px" style={{ marginBottom: 12 }} />
+                <div style={{ display: 'flex', gap: 20 }}>
+                  <Skeleton width="150px" height="16px" />
+                  <Skeleton width="150px" height="16px" />
+                </div>
+              </div>
+              <div style={{ padding: 25 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 15 }}>
+                  <Skeleton height="100px" borderRadius="12px" />
+                  <Skeleton height="100px" borderRadius="12px" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container" style={{ paddingBottom: 80 }}>
