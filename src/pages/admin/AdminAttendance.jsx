@@ -89,7 +89,7 @@ export default function AdminAttendance() {
       <div style={{ background: 'linear-gradient(135deg, #00796B, #4DB6AC)', padding: '30px', borderRadius: 20, color: 'white', marginBottom: 25, boxShadow: '0 8px 25px rgba(0, 121, 107, 0.2)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
         <div>
           <h2 style={{ margin: '0 0 5px 0', fontSize: '1.8rem' }}>📅 {t('attendance')}</h2>
-          <p style={{ margin: 0, opacity: 0.9 }}>Track children status and check-in times.</p>
+          <p style={{ margin: 0, opacity: 0.9 }}>{t('attendanceDesc') || 'Track children status and check-in times.'}</p>
         </div>
         <input 
           type="date" 
@@ -116,28 +116,28 @@ export default function AdminAttendance() {
       {loading ? <div className="spinner"></div> : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {children.length === 0 ? (
-            <div className="empty-state" style={{ background: 'white', padding: 60, borderRadius: 20 }}>
+            <div className="empty-state" style={{ background: 'white', padding: 60, borderRadius: 12, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
                <div style={{ fontSize: '3rem', marginBottom: 15 }}>👶</div>
-               <p style={{ color: '#999', fontWeight: 600 }}>No children found in the database.</p>
+               <p style={{ color: '#999', fontWeight: 600 }}>{t('noChildren') || 'No children found in the database.'}</p>
             </div>
           ) : children.map(child => {
             const att = attendance[child._id] || { status: 'Unmarked' };
             const status = att.status;
             
             return (
-              <div key={child._id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', borderRadius: 18, borderLeft: `6px solid ${status === 'Present' ? '#4caf50' : (status === 'Late' ? '#ff9800' : (status === 'Absent' ? '#f44336' : '#eee'))}` }}>
+              <div key={child._id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', borderRadius: 12, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderLeft: `6px solid ${status === 'Present' ? '#4caf50' : (status === 'Late' ? '#ff9800' : (status === 'Absent' ? '#f44336' : '#eee'))}` }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-                  <div style={{ width: 55, height: 55, borderRadius: 15, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', overflow: 'hidden' }}>
+                  <div style={{ width: 55, height: 55, borderRadius: 12, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', overflow: 'hidden' }}>
                     {child.avatar ? <img src={child.avatar} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👶'}
                   </div>
                   <div>
                     <h4 style={{ margin: '0 0 5px 0', fontSize: '1.15rem' }}>{child.name}</h4>
                     <div style={{ fontSize: '0.85rem', fontWeight: 700, color: status === 'Present' ? '#2e7d32' : (status === 'Absent' ? '#c62828' : '#e65100') }}>
-                      {status === 'Unmarked' ? <span style={{ color: '#aaa' }}>Pending...</span> : (
+                      {status === 'Unmarked' ? <span style={{ color: '#aaa' }}>{t('pendingDots') || 'Pending...'}</span> : (
                         <span>
                            {status === 'Present' && `🕒 ${att.checkIn || '—'}`}
-                           {status === 'Absent' && `❌ Absent ${att.reason ? `(${att.reason})` : ''}`}
-                           {status === 'Late' && `⚠️ Late ${att.reason ? `(${att.reason})` : ''}`}
+                           {status === 'Absent' && `❌ ${t('absent')} ${att.reason ? `(${att.reason})` : ''}`}
+                           {status === 'Late' && `⚠️ ${t('late')} ${att.reason ? `(${att.reason})` : ''}`}
                         </span>
                       )}
                     </div>
@@ -180,14 +180,14 @@ export default function AdminAttendance() {
            <div>
               <label className="form-label">{t('selectReason') || 'Why is the child late/absent?'}</label>
               <select name="reason" className="input" autoFocus required>
-                 <option value="Sick">Sick 🤒</option>
-                 <option value="Vacation">Vacation ✈️</option>
-                 <option value="Family">Family Reason 🏠</option>
-                 <option value="Other">Other 📝</option>
+                 <option value="Sick">{t('sick') || 'Sick'} 🤒</option>
+                 <option value="Vacation">{t('vacation') || 'Vacation'} ✈️</option>
+                 <option value="Family">{t('familyReason') || 'Family Reason'} 🏠</option>
+                 <option value="Other">{t('other') || 'Other'} 📝</option>
               </select>
            </div>
            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '15px' }}>
-              Confirm Status
+              {t('confirmStatus') || 'Confirm Status'}
            </button>
         </form>
       </Modal>

@@ -223,6 +223,11 @@ const translations = {
     admin: 'Admin',
     allPerfect: 'Everything is perfect! All children are accounted for.',
     almostThere: 'Almost there! Click below to finish marking attendance.',
+    attendanceDesc: 'Track children status and check-in times.',
+    noChildren: 'No children found in the database.',
+    pendingDots: 'Pending...',
+    familyReason: 'Family Reason',
+    confirmStatus: 'Confirm Status',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -444,6 +449,11 @@ const translations = {
     admin: 'מנהל',
     allPerfect: 'הכל מושלם! כל הילדים סומנו.',
     almostThere: 'כמעט שם! לחץ למטה כדי לסיים לסמן נוכחות.',
+    attendanceDesc: 'מעקב אחר סטטוס ילדים ושעות כניסה.',
+    noChildren: 'לא נמצאו ילדים במסד הנתונים.',
+    pendingDots: 'ממתין...',
+    familyReason: 'סיבה משפחתית',
+    confirmStatus: 'אשר סטטוס',
   }
 };
 
