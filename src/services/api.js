@@ -78,4 +78,18 @@ export const setAuthToken = (token) => {
   }
 };
 
+export const getChildren = () => ChildrenApi.getAll();
+export const createChild = (data) => ChildrenApi.create(data);
+
+export const getStaff = () => StaffApi.getAll();
+export const createStaff = (data) => StaffApi.create(data);
+
+export const getParents = () => FamiliesApi.getAll();
+export const createParent = (data) => FamiliesApi.create({
+  familyName: data.name,
+  motherName: data.name,
+  motherPhone: data.phone,
+  motherEmail: data.email
+});
+
 export default api;
