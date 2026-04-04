@@ -244,7 +244,6 @@ body {
 
 @media (min-width: 1024px) {
   .desktop-sidebar { display: flex; }
-  .bottom-nav { display: none; }
   .app-layout { flex-direction: row; }
   .app-header { display: none; } /* On desktop, header info moves to sidebar */
   .page-content { padding: 40px; }
@@ -317,7 +316,6 @@ body {
   }
 }
 
-/* ===== BOTTOM NAVIGATION (MOBILE) ===== */
 .bottom-nav {
   display: flex;
   background: var(--surface);
@@ -328,6 +326,10 @@ body {
   z-index: 10;
   box-shadow: 0 -2px 12px rgba(0,0,0,0.06);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (min-width: 1024px) {
+  .bottom-nav { display: none !important; }
 }
 
 .nav-item {
