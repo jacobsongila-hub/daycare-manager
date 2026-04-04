@@ -1,52 +1,52 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { NotificationProvider } from './context/NotificationContext';
-import { ConfirmProvider } from './context/ConfirmContext';
+import { AuthProvider, useAuth } from './context/AuthContext.jsx';
+import { NotificationProvider } from './context/NotificationContext.jsx';
+import { ConfirmProvider } from './context/ConfirmContext.jsx';
 
 // Layouts (found in components folder)
-import AdminLayout from './components/AdminLayout';
-import StaffLayout from './components/StaffLayout';
-import ParentLayout from './components/ParentLayout';
+import AdminLayout from './components/AdminLayout.jsx';
+import StaffLayout from './components/StaffLayout.jsx';
+import ParentLayout from './components/ParentLayout.jsx';
 
 // Pages
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import AdminAttendance from './pages/admin/AdminAttendance';
-import FamilyManagement from './pages/admin/FamilyManagement';
-import ChildDetail from './pages/admin/ChildDetail';
-import EmergencyContacts from './pages/admin/EmergencyContacts';
-import AdminStaff from './pages/admin/AdminStaff';
-import TimeTracking from './pages/TimeTracking';
-import AdminStaffSchedule from './pages/admin/AdminStaffSchedule';
-import AdminCalendar from './pages/admin/AdminCalendar';
-import AdminSettings from './pages/admin/AdminSettings';
-import Announcements from './pages/admin/Announcements';
-import Reminders from './pages/admin/Reminders';
-import ShiftManager from './pages/admin/ShiftManager';
-import UserManagement from './pages/admin/UserManagement';
-import AdminReports from './pages/admin/AdminReports';
-import AdminDocs from './pages/admin/AdminDocs';
-import AdminPhotos from './pages/admin/AdminPhotos';
-import AdminNotes from './pages/admin/AdminNotes';
+import Login from './pages/Login.jsx';
+import Dashboard from './pages/Dashboard.jsx';
+import AdminAttendance from './pages/admin/AdminAttendance.jsx';
+import FamilyManagement from './pages/admin/FamilyManagement.jsx';
+import ChildDetail from './pages/admin/ChildDetail.jsx';
+import EmergencyContacts from './pages/admin/EmergencyContacts.jsx';
+import AdminStaff from './pages/admin/AdminStaff.jsx';
+import TimeTracking from './pages/TimeTracking.jsx';
+import AdminStaffSchedule from './pages/admin/AdminStaffSchedule.jsx';
+import AdminCalendar from './pages/admin/AdminCalendar.jsx';
+import AdminSettings from './pages/admin/AdminSettings.jsx';
+import Announcements from './pages/admin/Announcements.jsx';
+import Reminders from './pages/admin/Reminders.jsx';
+import ShiftManager from './pages/admin/ShiftManager.jsx';
+import UserManagement from './pages/admin/UserManagement.jsx';
+import AdminReports from './pages/admin/AdminReports.jsx';
+import AdminDocs from './pages/admin/AdminDocs.jsx';
+import AdminPhotos from './pages/admin/AdminPhotos.jsx';
+import AdminNotes from './pages/admin/AdminNotes.jsx';
 
 // Staff Pages
-import StaffHome from './pages/staff/StaffHome';
-import StaffAttendance from './pages/staff/StaffAttendance';
-import StaffNotes from './pages/staff/StaffNotes';
-import StaffTimeTracking from './pages/staff/StaffTimeTracking';
-import StaffShifts from './pages/staff/StaffShifts';
-import StaffCalendar from './pages/staff/StaffCalendar';
-import StaffDocs from './pages/staff/StaffDocs';
-import StaffProfile from './pages/staff/StaffProfile';
+import StaffHome from './pages/staff/StaffHome.jsx';
+import StaffAttendance from './pages/staff/StaffAttendance.jsx';
+import StaffNotes from './pages/staff/StaffNotes.jsx';
+import StaffTimeTracking from './pages/staff/StaffTimeTracking.jsx';
+import StaffShifts from './pages/staff/StaffShifts.jsx';
+import StaffCalendar from './pages/staff/StaffCalendar.jsx';
+import StaffDocs from './pages/staff/StaffDocs.jsx';
+import StaffProfile from './pages/staff/StaffProfile.jsx';
 
 // Parent Pages
-import ParentHome from './pages/parent/ParentHome';
-import ParentCalendar from './pages/parent/ParentCalendar';
-import ParentDocs from './pages/parent/ParentDocs';
-import ParentProfile from './pages/parent/ParentProfile';
-import ParentPhotos from './pages/parent/ParentPhotos';
-import SetupAccount from './pages/SetupAccount';
+import ParentHome from './pages/parent/ParentHome.jsx';
+import ParentCalendar from './pages/parent/ParentCalendar.jsx';
+import ParentDocs from './pages/parent/ParentDocs.jsx';
+import ParentProfile from './pages/parent/ParentProfile.jsx';
+import ParentPhotos from './pages/parent/ParentPhotos.jsx';
+import SetupAccount from './pages/SetupAccount.jsx';
 
 function RoleRouter() {
   const { user } = useAuth();
@@ -108,7 +108,7 @@ export default function App() {
 
             <Route path="/" element={
               <ProtectedRoute>
-                <RoleRouterPage />
+                <RoleRouter />
               </ProtectedRoute>
             } />
 
@@ -164,6 +164,3 @@ export default function App() {
   );
 }
 
-function RoleRouterPage() {
-  return <RoleRouter />;
-}
