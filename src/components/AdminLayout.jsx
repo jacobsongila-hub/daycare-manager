@@ -30,37 +30,34 @@ export default function AdminLayout() {
         t={t} 
       />
 
-      <header className="app-header" style={{ background: 'var(--gradient-primary)' }}>
-        <div className="header-left">
-          <span className="header-logo">👑</span>
+      <header className="app-header" style={{ background: 'var(--gradient-primary)', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <span className="header-logo" style={{ fontSize: '1.5rem' }}>👑</span>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'white' }}>{t('dashboard')}</h1>
-            <div style={{ fontSize: 10, display: 'flex', gap: 5, alignItems: 'center', opacity: 0.8 }}>
-               <span style={{ fontWeight: 700 }}>Owner Portal</span>
-               <div className="status-indicator" style={{ background: 'none', border: 'none', padding: 0, margin: 0 }}>
+            <h1 style={{ margin: 0, fontSize: '1.2rem', color: 'white', fontWeight: 'bold' }}>Daycare Manager</h1>
+            <div style={{ fontSize: '0.75rem', display: 'flex', gap: '5px', alignItems: 'center', opacity: 0.9, color: 'white' }}>
+               <span style={{ fontWeight: 600 }}>Owner Portal</span>
+               <div className="status-indicator" style={{ background: 'none', border: 'none', padding: 0, margin: 0, display: 'flex', alignItems: 'center' }}>
                   <span className="status-dot"></span>
                </div>
             </div>
           </div>
         </div>
-        <button className="logout-btn" onClick={handleLogout}>
-          <span>🚪</span>
-          {t('logout')}
-        </button>
       </header>
 
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" style={{ display: 'flex', overflowX: 'auto', whiteSpace: 'nowrap', padding: '8px', gap: '8px', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
         {navItems.map((item) => (
           item.action ? (
-            <button key="logout" onClick={handleLogout} className="nav-item">
-              <span className="nav-icon">{item.icon}</span>
-              <span>{item.label}</span>
+            <button key="logout" onClick={handleLogout} className="nav-item" style={{ flex: '0 0 auto', padding: '8px 12px', minWidth: '70px' }}>
+              <span className="nav-icon" style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+              <span style={{ fontSize: '0.75rem' }}>{item.label}</span>
             </button>
           ) : (
             <NavLink key={item.to} to={item.to} end={item.end}
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
-              <span className="nav-icon">{item.icon}</span>
-              <span>{item.label}</span>
+              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              style={{ flex: '0 0 auto', padding: '8px 12px', minWidth: '70px' }}>
+              <span className="nav-icon" style={{ fontSize: '1.25rem' }}>{item.icon}</span>
+              <span style={{ fontSize: '0.75rem' }}>{item.label}</span>
             </NavLink>
           )
         ))}
