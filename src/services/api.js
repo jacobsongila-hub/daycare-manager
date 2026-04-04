@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = ''; // Use relative paths for proxy support; avoids /api doubling
+const BASE_URL = 'https://daycare-backend-nxx8.onrender.com';
 
 const api = axios.create({
     baseURL: BASE_URL,
