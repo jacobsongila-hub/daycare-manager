@@ -218,6 +218,11 @@ const translations = {
     eventNote: 'Event Note',
     scheduleFor: 'Schedule for',
     calendarAdminHint: 'Tip: Click on a day to add notes, holidays, or events.',
+    quickNoteSaved: 'Quick note saved locally',
+    failedAddNote: 'Failed to add note',
+    admin: 'Admin',
+    allPerfect: 'Everything is perfect! All children are accounted for.',
+    almostThere: 'Almost there! Click below to finish marking attendance.',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -434,6 +439,11 @@ const translations = {
     eventNote: 'הערת אירוע',
     scheduleFor: 'לוח זמנים עבור',
     calendarAdminHint: 'טיפ: לחץ על יום כדי להוסיף הערות, חגים או אירועים.',
+    quickNoteSaved: 'ההערה נשמרה מקומית בהצלחה',
+    failedAddNote: 'נכשל בהוספת הערה',
+    admin: 'מנהל',
+    allPerfect: 'הכל מושלם! כל הילדים סומנו.',
+    almostThere: 'כמעט שם! לחץ למטה כדי לסיים לסמן נוכחות.',
   }
 };
 

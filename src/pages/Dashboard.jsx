@@ -120,11 +120,11 @@ export default function Dashboard() {
       localStorage.setItem('reminders', JSON.stringify(updated));
       e.target.reset();
       setReminders(updated.filter(r => !r.completed));
-      addToast('Quick note saved locally', 'success');
-    } catch (err) { addToast('Failed to add note', 'error'); }
+      addToast(t('quickNoteSaved') || 'Quick note saved locally', 'success');
+    } catch (err) { addToast(t('failedAddNote') || 'Failed to add note', 'error'); }
   };
 
-  const today = new Date().toLocaleDateString('en-US', {
+  const today = new Date().toLocaleDateString(lang === 'he' ? 'he-IL' : 'en-US', {
     weekday: 'long', month: 'long', day: 'numeric',
   });
 
@@ -192,11 +192,11 @@ export default function Dashboard() {
       )}
 
       {/* HEADER */}
-      <div style={{ padding: '30px 24px', background: 'white', borderBottom: '1px solid var(--border)', marginBottom: 24, boxShadow: 'var(--shadow)' }}>
+      <div style={{ padding: '30px 24px', background: 'white', borderBottom: '1px solid var(--border)', marginBottom: 24, boxShadow: 'var(--shadow)', borderRadius: '0 0 12px 12px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 1 }}>{getDayGreeting(t)}</div>
-            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px' }}>{user?.name || 'Admin'}</div>
+            <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.5px' }}>{user?.name || t('admin')}</div>
             <div style={{ fontSize: '1rem', color: 'var(--primary)', fontWeight: 700, marginTop: 4 }}>{today}</div>
           </div>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -225,19 +225,19 @@ export default function Dashboard() {
 
       {/* QUICK STATS - PREMIUM CARDS */}
       <div style={{ padding: '0 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-        <div className="card" style={{ background: 'var(--gradient-success)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+        <div className="card" style={{ background: 'var(--gradient-success)', border: 'none', color: 'white', padding: 28, borderRadius: 12, boxShadow: '0 6px 12px -2px rgba(0, 0, 0, 0.15)' }}>
           <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.present}</div>
           <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>👶 {t('childrenPresent')}</div>
         </div>
-        <div className="card" style={{ background: 'var(--gradient-danger)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+        <div className="card" style={{ background: 'var(--gradient-danger)', border: 'none', color: 'white', padding: 28, borderRadius: 12, boxShadow: '0 6px 12px -2px rgba(0, 0, 0, 0.15)' }}>
           <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.absent}</div>
           <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>❌ {t('childrenAbsent')}</div>
         </div>
-        <div className="card" style={{ background: 'var(--gradient-primary)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+        <div className="card" style={{ background: 'var(--gradient-primary)', border: 'none', color: 'white', padding: 28, borderRadius: 12, boxShadow: '0 6px 12px -2px rgba(0, 0, 0, 0.15)' }}>
           <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{stats.staffIn}</div>
           <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>👩‍🏫 {t('staffIn')}</div>
         </div>
-        <div className="card" style={{ background: 'linear-gradient(135deg, #8e24aa, #6a1b9a)', border: 'none', color: 'white', padding: 28, borderRadius: 28 }}>
+        <div className="card" style={{ background: 'linear-gradient(135deg, #8e24aa, #6a1b9a)', border: 'none', color: 'white', padding: 28, borderRadius: 12, boxShadow: '0 6px 12px -2px rgba(0, 0, 0, 0.15)' }}>
           <div style={{ fontSize: '3rem', fontWeight: 950, letterSpacing: '-1px' }}>{ratio}:1</div>
           <div style={{ fontSize: '0.9rem', fontWeight: 800, opacity: 0.9, textTransform: 'uppercase', letterSpacing: 1.5, marginTop: 4 }}>📊 {t('staffChildRatio')}</div>
         </div>
@@ -246,7 +246,7 @@ export default function Dashboard() {
       <div style={{ padding: '0 24px 32px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
         
         {/* PROGRESS & TRACKING */}
-        <div className="card" style={{ padding: 28, borderRadius: 32 }}>
+        <div className="card" style={{ padding: 28, borderRadius: 12, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text)', fontWeight: 900 }}>📈 {t('attendanceProgress')}</h3>
             <span style={{ fontSize: '1.2rem', fontWeight: 950, color: 'var(--primary)' }}>{attendanceProgress}%</span>
@@ -255,7 +255,7 @@ export default function Dashboard() {
             <div style={{ width: `${attendanceProgress}%`, background: 'var(--gradient-primary)', height: '100%', borderRadius: 12, transition: 'width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
           </div>
           <p style={{ margin: 0, fontSize: '0.95rem', color: 'var(--text-muted)', lineHeight: 1.6, fontWeight: 500 }}>
-            {attendanceProgress === 100 ? '✨ Everything is perfect! All children are accounted for.' : '⌛ Almost there! Click below to finish marking attendance.'}
+            {attendanceProgress === 100 ? `✨ ${t('allPerfect') || 'Everything is perfect! All children are accounted for.'}` : `⌛ ${t('almostThere') || 'Almost there! Click below to finish marking attendance.'}`}
           </p>
           <button 
             className="btn btn-secondary"
@@ -267,7 +267,7 @@ export default function Dashboard() {
         </div>
 
         {/* STICKY REMINDERS PREVIEW */}
-        <div className="card" style={{ padding: 28, borderRadius: 32, background: 'rgba(255, 249, 196, 0.3)', border: '1px solid rgba(255, 241, 118, 0.5)' }}>
+        <div className="card" style={{ padding: 28, borderRadius: 12, background: 'rgba(255, 249, 196, 0.3)', border: '1px solid rgba(255, 241, 118, 0.5)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
             <h3 style={{ margin: 0, fontSize: '1.25rem', color: '#5d4037', fontWeight: 900 }}>📌 {t('reminders')}</h3>
             <button 
@@ -301,7 +301,7 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 20 }}>
           {actionCards.map((card, idx) => (
             <div key={idx} onClick={() => navigate(card.to)} style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <div style={{ width: 70, height: 70, borderRadius: 22, background: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', color: 'white', boxShadow: '0 8px 15px rgba(0,0,0,0.1)', transition: 'transform 0.2s' }} className="action-icon">
+              <div style={{ width: 70, height: 70, borderRadius: 12, background: card.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', color: 'white', boxShadow: '0 4px 10px rgba(0,0,0,0.15)', transition: 'transform 0.2s' }} className="action-icon">
                 {card.icon}
               </div>
               <span style={{ fontSize: '0.85rem', textAlign: 'center', color: '#444', fontWeight: 700, maxWidth: 80, lineHeight: 1.2 }}>{t(card.label) || card.label}</span>
