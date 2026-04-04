@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/api/*"
-  to = "https://daycare-hub-backend.onrender.com/api/:splat"
+  to = "https://daycare-backend-c8ri.onrender.com/api/:splat"
   status = 200
   force = true
 
