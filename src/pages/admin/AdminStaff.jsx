@@ -154,14 +154,14 @@ export default function AdminStaff() {
                   <div>📞 {worker.phone || t('noPhone') || 'No phone'}</div>
                 </div>
 
-                <div style={{ display: 'flex', gap: 10, marginTop: 'auto', paddingTop: 15, borderTop: '1px solid #f0f0f0' }}>
-                  <button className="btn" style={{ flex: 1, fontSize: '0.85rem' }} onClick={() => { setEditStaff(worker); setShowModal(true); }}>
-                    {t('edit')}
+                <div style={{ display: 'flex', gap: 8, marginTop: 'auto', paddingTop: 15, borderTop: '1px solid #f0f0f0', flexWrap: 'wrap' }}>
+                  <button className="btn" style={{ flex: '1 1 auto', fontSize: '0.85rem' }} onClick={() => { setEditStaff(worker); setShowModal(true); }}>
+                    {t('edit') || 'Edit'}
                   </button>
-                  <button className="btn" style={{ flex: 1, fontSize: '0.85rem', color: worker.role === 'Suspended' ? '#4caf50' : '#f44336' }} onClick={() => handleToggleStatus(worker)}>
+                  <button className="btn" style={{ flex: '1 1 auto', fontSize: '0.85rem', color: worker.role === 'Suspended' ? '#4caf50' : '#f44336' }} onClick={() => handleToggleStatus(worker)}>
                     {worker.role === 'Suspended' ? `✓ ${t('reactivate') || 'Reactivate'}` : `⏸ ${t('suspend') || 'Suspend'}`}
                   </button>
-                  <button className="btn" style={{ color: '#f44336' }} onClick={() => handleDelete(worker._id)}>🗑️</button>
+                  <button className="btn" style={{ flex: '0 0 auto', color: '#f44336' }} onClick={() => handleDelete(worker._id)}>🗑️</button>
                 </div>
                 {worker.joinDate && <div style={{ fontSize: '0.75rem', color: '#999', marginTop: 5, textAlign: 'center' }}>📅 {t('joined') || 'Joined'}: {worker.joinDate}</div>}
               </div>
@@ -179,10 +179,10 @@ export default function AdminStaff() {
               <input name="email" defaultValue={editStaff?.email} type="email" placeholder={t('email') || "Email"} className="input" />
               <input name="phone" defaultValue={editStaff?.phone} type="tel" placeholder={t('phone') || "Phone"} className="input" />
               <select name="role" defaultValue={editStaff?.role || 'Staff'} className="input">
-                <option value="Staff">Regular Staff</option>
-                <option value="Lead Teacher">Lead Teacher</option>
-                <option value="Assistant">Assistant</option>
-                <option value="Suspended">Suspended</option>
+                <option value="Staff">{t('roleStaff') || 'Regular Staff'}</option>
+                <option value="Lead Teacher">{t('roleLeadTeacher') || 'Lead Teacher'}</option>
+                <option value="Assistant">{t('roleAssistant') || 'Assistant'}</option>
+                <option value="Suspended">{t('roleSuspended') || 'Suspended'}</option>
               </select>
               <div className="form-group">
                 <label className="form-label" style={{ fontSize: '0.8rem', color: '#666' }}>{t('joinDate') || 'Join Date'}</label>
@@ -192,8 +192,8 @@ export default function AdminStaff() {
               {!editStaff && (
                 <div style={{ background: '#f5f7f9', padding: '15px', borderRadius: '12px', marginTop: '10px' }}>
                   <h4 style={{ margin: '0 0 10px 0', fontSize: '0.9rem' }}>🔑 {t('loginAccount') || 'Login Account'}</h4>
-                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>If you provide a password, an account will be created automatically.</p>
-                  <input name="password" type="password" placeholder={t('password') || "Password (min. 6 chars)"} className="input" style={{ background: 'white' }} minLength={6} />
+                  <p style={{ fontSize: '0.75rem', color: '#666', marginBottom: 10 }}>{t('loginCreationHint') || 'If you provide a password, an account will be created automatically.'}</p>
+                  <input name="password" type="password" placeholder={t('passwordHintMin') || "Password (min. 6 chars)"} className="input" style={{ background: 'white' }} minLength={6} />
                 </div>
               )}
               <div className="modal-actions">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { NotificationProvider } from './context/NotificationContext.jsx';
@@ -59,12 +59,32 @@ function RoleRouter() {
 }
 
 function Splash() {
+  const [showWakeMessage, setShowWakeMessage] = useState(false);
+
+  useEffect(() => {
+    // If Splash stays on screen for more than 3 seconds, the Render backend is waking up
+    const timer = setTimeout(() => {
+      setShowWakeMessage(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="splash">
-      <div style={{ textAlign: 'center' }}>
-        <div className="splash-logo" style={{ fontSize: 80, marginBottom: 20 }}>🏠</div>
-        <div className="spinner" style={{ margin: '0 auto' }}></div>
-        <p style={{ marginTop: 20, fontWeight: 600, color: 'var(--text-muted)', letterSpacing: 1 }}>LITTLE ONES</p>
+    <div className="splash" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: 'var(--bg)', animation: 'fadeIn 0.4s ease-out' }}>
+      <div style={{ textAlign: 'center', background: 'var(--surface)', padding: '50px 40px', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-md)', border: '1px solid var(--border)', maxWidth: 400, width: '90%' }}>
+        <div className="splash-logo" style={{ fontSize: 72, marginBottom: 24, animation: 'float 3s ease-in-out infinite' }}>🏠</div>
+        <div className="spinner" style={{ margin: '0 auto', width: 45, height: 45, borderTopColor: 'var(--primary)', borderWidth: 4 }}></div>
+        <p style={{ marginTop: 24, fontWeight: 800, color: 'var(--text)', letterSpacing: 1, fontSize: '1.2rem' }}>LITTLE ONES</p>
+        
+        {showWakeMessage && (
+          <div style={{ marginTop: 20, padding: '16px', background: 'var(--surface-2)', borderRadius: '12px', border: '1px solid var(--border)', animation: 'fadeIn 0.5s ease-out' }}>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              <span style={{ color: 'var(--accent)', marginRight: 6 }}>⏱️</span>
+              Waking up secure server...
+            </p>
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-light)' }}>(This may take up to 30 seconds)</p>
+          </div>
+        )}
       </div>
     </div>
   );

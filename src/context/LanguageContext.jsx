@@ -228,6 +228,12 @@ const translations = {
     pendingDots: 'Pending...',
     familyReason: 'Family Reason',
     confirmStatus: 'Confirm Status',
+    roleStaff: 'Regular Staff',
+    roleLeadTeacher: 'Lead Teacher',
+    roleAssistant: 'Assistant',
+    roleSuspended: 'Suspended',
+    loginCreationHint: 'If you provide a password, an account will be created automatically.',
+    passwordHintMin: 'Password (min. 6 chars)',
   },
   he: {
     dashboard: 'לוח בקרה',
@@ -454,6 +460,12 @@ const translations = {
     pendingDots: 'ממתין...',
     familyReason: 'סיבה משפחתית',
     confirmStatus: 'אשר סטטוס',
+    roleStaff: 'צוות רגיל',
+    roleLeadTeacher: 'מורה מוביל',
+    roleAssistant: 'סייעת',
+    roleSuspended: 'מושעה',
+    loginCreationHint: 'אם תספק סיסמה, חשבון יווצר אוטומטית.',
+    passwordHintMin: 'סיסמה (מינימום 6 תווים)',
   }
 };
 

@@ -6,33 +6,29 @@
 }
 
 :root {
-  /* -- Colors: Refined HSL Palette -- */
-  --primary-h: 210;
-  --primary-s: 100%;
-  --primary-l: 50%;
+  /* -- Colors: Clean Pro SaaS Palette -- */
+  --primary: #4f46e5;      /* Deep Indigo */
+  --primary-dark: #3730a3;
+  --primary-light: #e0e7ff;
+  --primary-mid: #6366f1;
   
-  --primary: hsl(var(--primary-h), var(--primary-s), var(--primary-l));
-  --primary-dark: hsl(var(--primary-h), var(--primary-s), 40%);
-  --primary-light: hsl(var(--primary-h), var(--primary-s), 95%);
-  --primary-mid: hsl(var(--primary-h), var(--primary-s), 65%);
+  --accent: #0ea5e9;       /* Bright Teal/Sky Accent */
+  --success: #10b981;      /* Emerald */
+  --warning: #f59e0b;      /* Amber */
+  --danger: #ef4444;       /* Rose */
   
-  --accent: #ff6f00;
-  --success: #10b981; /* Modern Emerald */
-  --warning: #f59e0b; /* Modern Amber */
-  --danger: #ef4444;  /* Modern Rose */
-  
-  --bg: #f8fafc;
+  --bg: #f8fafc;           /* Soft Pearl */
   --surface: #ffffff;
-  --surface-2: #f1f5f9;
-  --border: #e2e8f0;
+  --surface-2: #f1f5f9;    /* Zinc/Slate 100 */
+  --border: #e2e8f0;       /* Zinc/Slate 200 */
   
-  --text: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text: #0f172a;         /* Slate 900 */
+  --text-muted: #475569;   /* Slate 600 */
+  --text-light: #94a3b8;   /* Slate 400 */
   
   --nav-height: 64px;
   --header-height: 70px;
-  --radius: 20px;
+  --radius: 12px;          /* Enforced 12px Master Radius */
   --radius-sm: 12px;
   
   /* -- Elevations & Shadows -- */
@@ -456,7 +452,7 @@ body {
   padding: 14px 16px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
+  font-size: 16px !important; /* Critical for iOS Zoom bug */
   font-family: inherit;
   color: var(--text);
   background: var(--surface-2);
@@ -468,7 +464,7 @@ body {
 
 .form-input:focus, .input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
   background: white;
 }
 
@@ -556,13 +552,15 @@ textarea.input {
   padding: 14px 16px;
   border: 2px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
+  font-size: 16px !important; /* Critical for iOS Zoom */
   font-family: inherit;
   color: var(--text);
-  background: var(--surface-2);
+  background: var(--surface);
   transition: border-color 0.2s;
   outline: none;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .form-select:focus {
@@ -591,14 +589,14 @@ textarea.input {
 .btn:active { transform: scale(0.95); }
 
 .btn-primary {
-  background: var(--gradient-primary);
+  background: var(--primary);
   color: white;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
   border: none;
 }
 
 .btn-primary:hover {
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
   transform: translateY(-2px);
   filter: brightness(1.1);
 }
